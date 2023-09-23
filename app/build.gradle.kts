@@ -87,7 +87,6 @@ android {
         )
         buildConfigField("String", "BRANCH", "\"$branch\"")
         buildConfigField("String", "COMMIT_SHA", "\"$commitSha\"")
-        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
         buildConfigField("String", "REPO_NAME", "\"$repoName\"")
     }
 
@@ -151,9 +150,11 @@ android {
             isShrinkResources = true
             proguardFiles("proguard-rules.pro")
             signingConfig = signConfig
+            buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
         }
         debug {
             applicationIdSuffix = ".debug"
+            buildConfigField("String", "BUILD_TIME", "\"\"")
         }
     }
 
