@@ -19,6 +19,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import com.hippo.ehviewer.client.EhUrl
 import com.hippo.ehviewer.client.exception.ParseException
+import com.hippo.ehviewer.client.parser.SignInParser.ERROR_PATTERN
 import eu.kanade.tachiyomi.util.system.logcat
 import org.jsoup.Jsoup
 
@@ -43,13 +44,11 @@ object ProfileParser {
         }
         Result(displayName, avatar)
     }.getOrElse {
-        if (body.contains("Your account has been temporarily suspended")) {
-            logcat { "Account suspended" }
+        ERROR_PATTERN.find(body)?.let {
             val displayName = Jsoup.parse(body).select("p.home > b > a").first()?.text()
+            logcat { it.groupValues[1].ifEmpty { it.groupValues[2] } }
             Result(displayName, null)
-        } else {
-            throw ParseException("Parse forums error")
-        }
+        } ?: throw ParseException("Parse forums error")
     }
 
     class Result(val displayName: String?, val avatar: String?)
