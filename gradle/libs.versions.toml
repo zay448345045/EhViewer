@@ -14,7 +14,7 @@ androidx-graphics-path = "1.0.1"
 androidx-lifecycle = "2.9.0-alpha05"
 androidx-paging = "3.3.2"
 androidx-room = "2.7.0-alpha10"
-androidx-work = "2.10.0-beta01"
+androidx-work = "2.10.0-rc01"
 arrow = "1.2.4"
 coil = "3.0.0-rc01"
 compose-bom = "2024.10.00"
@@ -90,7 +90,7 @@ conscrypt = "info.guardianproject.conscrypt:conscrypt-android:2.6.alpha164760198
 doh = "tech.relaycorp:doh:1.0.61"
 material-kolor = "com.materialkolor:material-kolor:2.0.0"
 
-desugar = "com.android.tools:desugar_jdk_libs_nio:2.1.2"
+desugar = "com.android.tools:desugar_jdk_libs:2.1.2"
 
 diff = "io.github.petertrr:kotlin-multiplatform-diff:0.7.0"
 jsoup = "org.jsoup:jsoup:1.18.1"

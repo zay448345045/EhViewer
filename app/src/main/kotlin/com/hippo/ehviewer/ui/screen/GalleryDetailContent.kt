@@ -3,7 +3,6 @@ package com.hippo.ehviewer.ui.screen
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.text.TextUtils.TruncateAt.END
 import androidx.annotation.StringRes
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.MutatorMutex
@@ -52,9 +51,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.LocalPinnableContainer
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.core.text.parseAsHtml
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -101,7 +100,6 @@ import com.hippo.ehviewer.ui.confirmRemoveDownload
 import com.hippo.ehviewer.ui.destinations.GalleryCommentsScreenDestination
 import com.hippo.ehviewer.ui.getFavoriteIcon
 import com.hippo.ehviewer.ui.jumpToReaderByPage
-import com.hippo.ehviewer.ui.legacy.CoilImageGetter
 import com.hippo.ehviewer.ui.main.EhPreviewItem
 import com.hippo.ehviewer.ui.main.GalleryCommentCard
 import com.hippo.ehviewer.ui.main.GalleryDetailErrorTip
@@ -145,6 +143,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import moe.tarsin.coroutines.runSuspendCatching
 import moe.tarsin.coroutines.runSwallowingWithUI
@@ -240,7 +239,7 @@ fun GalleryDetailContent(
         }
     }
 
-    val previews = galleryDetail?.let { collectPreviewItems(it, thumbColumns) }
+    val previews = galleryDetail.collectPreviewItems(thumbColumns)
     when (windowSizeClass.windowWidthSizeClass) {
         WindowWidthSizeClass.MEDIUM, WindowWidthSizeClass.COMPACT -> FastScrollLazyVerticalGrid(
             columns = GridCells.Fixed(thumbColumns),
@@ -298,8 +297,8 @@ fun GalleryDetailContent(
                     }
                 }
             }
-            if (previews != null) {
-                galleryPreview(previews) { navToReader(galleryDetail.galleryInfo, it) }
+            if (galleryDetail != null) {
+                galleryPreview(galleryDetail, previews) { navToReader(galleryDetail.galleryInfo, it) }
             }
         }
 
@@ -366,8 +365,8 @@ fun GalleryDetailContent(
                     }
                 }
             }
-            if (previews != null) {
-                galleryPreview(previews) { navToReader(galleryDetail.galleryInfo, it) }
+            if (galleryDetail != null) {
+                galleryPreview(galleryDetail, previews) { navToReader(galleryDetail.galleryInfo, it) }
             }
         }
     }
@@ -410,11 +409,10 @@ fun BelowHeader(galleryDetail: GalleryDetail) {
                     onCardClick = ::onNavigateToCommentScene,
                     onUserClick = ::onNavigateToCommentScene,
                     onUrlClick = { if (!jumpToReaderByPage(it, galleryDetail)) if (!navWithUrl(it)) openBrowser(it) },
-                ) {
-                    maxLines = 5
-                    ellipsize = END
-                    text = item.comment.parseAsHtml(imageGetter = CoilImageGetter(this))
-                }
+                    maxLines = 5,
+                    overflow = TextOverflow.Ellipsis,
+                    showImage = false,
+                )
             }
             Box(
                 modifier = Modifier
@@ -735,10 +733,10 @@ private fun List<GalleryTagGroup>.getArtistTag(): String? {
     return null
 }
 
-typealias Previews = Pair<GalleryDetail, LazyPagingItems<GalleryPreview>>
-
+context(Context)
 @Composable
-private fun Context.collectPreviewItems(detail: GalleryDetail, prefetchDistance: Int) = rememberInVM(detail) {
+private fun GalleryDetail?.collectPreviewItems(prefetchDistance: Int) = rememberInVM(this) {
+    val detail = this@collectPreviewItems ?: return@rememberInVM emptyFlow()
     val pageSize = detail.previewList.size
     val pages = detail.pages
     val previewPagesMap = detail.previewList.associateBy { it.position } as MutableMap
@@ -777,10 +775,13 @@ private fun Context.collectPreviewItems(detail: GalleryDetail, prefetchDistance:
             override val jumpingSupported = true
         }
     }.flow.cachedIn(viewModelScope)
-}.collectAsLazyPagingItems().let { remember(detail, it) { detail to it } }
+}.collectAsLazyPagingItems()
 
-private fun LazyGridScope.galleryPreview(previews: Previews, onClick: (Int) -> Unit) {
-    val (detail, data) = previews
+private fun LazyGridScope.galleryPreview(
+    detail: GalleryDetail,
+    data: LazyPagingItems<GalleryPreview>,
+    onClick: (Int) -> Unit,
+) {
     items(
         count = data.itemCount,
         key = data.itemKey(key = { item -> item.position }),
