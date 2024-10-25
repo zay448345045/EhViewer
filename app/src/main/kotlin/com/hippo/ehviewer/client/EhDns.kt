@@ -56,6 +56,8 @@ object EhDns : Dns {
     override fun lookup(hostname: String): List<InetAddress> = when {
         (hostname in echEnabledDomains && Settings.enableECH) ->
             EhDoH.lookup(hostname) ?: systemDns.lookup(hostname)
+        (hostname in dohSkipDomains) ->
+            systemDns.lookup(hostname)
         else ->
             builtInHosts[hostname] ?: EhDoH.lookup(hostname) ?: systemDns.lookup(hostname)
     }.shuffled()
