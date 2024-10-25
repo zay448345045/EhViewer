@@ -178,6 +178,11 @@ fun EhScreen(navigator: DestinationsNavigator) {
                     ) - 2
                 }
             }
+            SwitchPreference(
+                title = stringResource(id = R.string.ignore_set_cookie),
+                summary = stringResource(id = R.string.ignore_set_cookie_summary),
+                value = Settings::enableIgnoreSetCookie,
+            )
             SimpleMenuPreferenceInt(
                 title = stringResource(id = R.string.dark_theme),
                 entry = R.array.night_mode_entries,

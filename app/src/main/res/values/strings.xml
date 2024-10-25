@@ -466,6 +466,8 @@
     <string name="favorite_name">Favorite</string>
     <string name="dark_theme">Dark theme</string>
     <string name="black_dark_theme">Black dark theme</string>
+    <string name="ignore_set_cookie">Ignore Set-Cookie</string>
+    <string name="ignore_set_cookie_summary">For deleted suspended accounts</string>
     <string name="harmonize_category_color">Harmonize category color for Dynamic Color</string>
     <string name="sort_by">Sort by</string>
     <string name="added_time_desc">Added time (descending)</string>
