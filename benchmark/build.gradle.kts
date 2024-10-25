@@ -33,19 +33,10 @@ android {
         create("default") { dimension = "api" }
         create("marshmallow") { dimension = "api" }
     }
-
-    testOptions.managedDevices.devices {
-        create<ManagedVirtualDevice>("pixel6Api34") {
-            device = "Pixel 6"
-            apiLevel = 34
-            systemImageSource = "aosp-atd"
-        }
-    }
 }
 
 baselineProfile {
-    managedDevices += "pixel6Api34"
-    useConnectedDevices = false
+    useConnectedDevices = true
 }
 
 dependencies {
