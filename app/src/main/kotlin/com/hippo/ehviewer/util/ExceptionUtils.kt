@@ -17,9 +17,41 @@ package com.hippo.ehviewer.util
 
 import com.hippo.ehviewer.R
 import eu.kanade.tachiyomi.util.system.logcat
+import java.io.IOException
+import java.net.MalformedURLException
+import java.net.ProtocolException
+import java.net.SocketException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import javax.net.ssl.SSLException
 import splitties.init.appCtx
 
 fun Throwable.displayString(): String {
     logcat(this)
     return message ?: appCtx.getString(R.string.error_unknown)
+}
+
+private fun getReadableStringInternal(e: Throwable) = when (e) {
+    is MalformedURLException -> appCtx.getString(R.string.error_invalid_url)
+    is SocketTimeoutException -> appCtx.getString(R.string.error_timeout)
+    is UnknownHostException -> appCtx.getString(R.string.error_unknown_host)
+    is ProtocolException -> if (e.message!!.startsWith("Too many follow-up requests:")) {
+        appCtx.getString(R.string.error_redirection)
+    } else {
+        appCtx.getString(R.string.error_socket)
+    }
+    is SocketException, is SSLException -> appCtx.getString(R.string.error_socket)
+    else -> e.message ?: appCtx.getString(R.string.error_unknown)
+}
+
+object ExceptionUtils {
+    fun getReadableString(e: Throwable): String {
+        logcat(e)
+        val cause = e.cause
+        return if (e is IOException && cause != null) {
+            getReadableStringInternal(cause)
+        } else {
+            getReadableStringInternal(e)
+        }
+    }
 }
