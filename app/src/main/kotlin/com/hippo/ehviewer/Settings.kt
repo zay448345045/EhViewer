@@ -187,7 +187,7 @@ object Settings : DataStorePreferences(null) {
     var cloudflareIpOverride by boolPref("cloudflare_ip_override", false)
     var enableECH by boolPref("enable_ech", false)
     var lastUpdateTime by longPref("last_update_time", BuildConfig.COMMIT_TIME)
-    var enableIgnoreSetCookie by boolPref("enable_ignore_set_cookie", false)
+    var enableIgnoreSetCookie by boolPref("enable_ignore_set_cookie", true)
 
     // Reader
     val cropBorder = boolPref("crop_borders", false)
