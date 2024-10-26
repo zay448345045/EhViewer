@@ -33,6 +33,12 @@ val builtInDoHUrls = listOf(
     "https://1.0.0.1/dns-query",
 )
 
+val dohSkipDomains = listOf(
+    "www.recaptcha.net",
+    "www.gstatic.cn",
+    "www.gstatic.com",
+)
+
 fun hostsDsl(builder: HostsMap.() -> Unit): HostsMap = mutableMapOf<String, List<InetAddress>>().apply(builder)
 
 fun interface HostMapBuilder {

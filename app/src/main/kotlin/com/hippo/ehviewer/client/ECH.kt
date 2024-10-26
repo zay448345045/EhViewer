@@ -18,12 +18,6 @@ val echEnabledDomains = listOf(
     "testingcf.jsdelivr.net",
 )
 
-val dohSkipDomains = listOf(
-    "www.recaptcha.net",
-    "www.gstatic.cn",
-    "www.gstatic.com",
-)
-
 fun getCachedEchConfig(): ByteArray? = cachedEchConfig?.takeIf { System.currentTimeMillis() < expirationTime }?.also {
     Log.d("ECH", "Cache hit")
 }
