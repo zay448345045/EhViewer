@@ -2,13 +2,14 @@ package com.hippo.ehviewer.cronet
 
 import com.hippo.ehviewer.Settings
 import com.hippo.ehviewer.builtInHosts
+import com.hippo.ehviewer.client.CFSUFFIX
+import com.hippo.ehviewer.client.cloudflaredDomains
 import java.io.File
 import org.chromium.net.ExperimentalCronetEngine
 import org.json.JSONObject
 import splitties.init.appCtx
 
 val CloudflareIP = Settings.cloudflareIp
-const val CFSUFFIX = ".cdn.cloudflare.net"
 fun randomIP(host: String): String? = builtInHosts[host]?.random()?.hostAddress
 
 val cronetHttpClient: ExperimentalCronetEngine = ExperimentalCronetEngine.Builder(appCtx).apply {
@@ -27,16 +28,7 @@ fun configureCronetEngineBuilder(builder: ExperimentalCronetEngine.Builder) {
 }
 
 private fun ExperimentalCronetEngine.Builder.setQuicHints() {
-    val quicHosts = listOf(
-        "e-hentai.org",
-        "api.e-hentai.org",
-        "upload.e-hentai.org",
-        "forums.e-hentai.org",
-        "exhentai.org",
-        "s.exhentai.org",
-        "testingcf.jsdelivr.net",
-    )
-    quicHosts.forEach { addQuicHint(it, 443, 443) }
+    cloudflaredDomains.forEach { addQuicHint(it, 443, 443) }
 }
 
 private fun ExperimentalCronetEngine.Builder.setCacheSettings() {

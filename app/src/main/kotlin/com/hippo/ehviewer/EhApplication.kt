@@ -54,6 +54,7 @@ import com.hippo.ehviewer.download.DownloadManager
 import com.hippo.ehviewer.download.DownloadsFilterMode
 import com.hippo.ehviewer.ktbuilder.cache
 import com.hippo.ehviewer.ktbuilder.diskCache
+import com.hippo.ehviewer.ktbuilder.http3Client
 import com.hippo.ehviewer.ktbuilder.httpClient
 import com.hippo.ehviewer.ktbuilder.imageLoader
 import com.hippo.ehviewer.ktor.Cronet
@@ -88,6 +89,7 @@ import logcat.LogcatLogger
 import logcat.asLog
 import okhttp3.Protocol
 import okio.Path.Companion.toOkioPath
+import org.xbill.DNS.config.AndroidResolverConfigProvider
 import splitties.arch.room.roomDb
 import splitties.init.appCtx
 
@@ -139,6 +141,7 @@ class EhApplication :
         if (BuildConfig.DEBUG) {
             StrictMode.enableDefaults()
         }
+        AndroidResolverConfigProvider.setContext(this)
     }
 
     private suspend fun cleanupDownload() {
@@ -243,7 +246,7 @@ class EhApplication :
 
         // Never use this okhttp client to download large blobs!!!
         val okHttpClient by lazy {
-            httpClient(nonCacheOkHttpClient) {
+            http3Client(isCronetAvailable, nonCacheOkHttpClient) {
                 cache(
                     appCtx.cacheDir.toOkioPath() / "http_cache",
                     20L * 1024L * 1024L,

@@ -46,6 +46,7 @@ import com.hippo.ehviewer.R
 import com.hippo.ehviewer.Settings
 import com.hippo.ehviewer.asMutableState
 import com.hippo.ehviewer.client.EhEngine
+import com.hippo.ehviewer.client.builtInCensoredDoHUrls
 import com.hippo.ehviewer.client.builtInDoHUrls
 import com.hippo.ehviewer.client.data.FavListUrlBuilder
 import com.hippo.ehviewer.client.systemDns
@@ -436,7 +437,7 @@ private fun buildDoHDNS(url: String): DnsOverHttps = DnsOverHttps.Builder().appl
 }.build()
 
 private var doh: DnsOverHttps? = getEffectiveDoHUrl().runCatching { buildDoHDNS(this) }.getOrNull()
-var doh2 = getEffectiveDoHUrl().runCatching { DoHClient(this) }.getOrNull()
+var censoredDoh = builtInCensoredDoHUrls.shuffled().first().runCatching { DoHClient(this) }.getOrNull()
 
 object EhDoH {
     fun lookup(hostname: String): List<InetAddress>? = doh?.runCatching { lookup(hostname).takeIf { it.isNotEmpty() } }?.onFailure { it.printStackTrace() }?.getOrNull()

@@ -269,6 +269,7 @@ dependencies {
     implementation(libs.bundles.cronet)
     implementation(libs.conscrypt)
     implementation(libs.doh)
+    implementation(libs.bundles.dns)
 
     implementation(libs.androidx.profileinstaller)
     "baselineProfile"(project(":benchmark"))

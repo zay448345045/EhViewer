@@ -3,13 +3,6 @@ package com.hippo.ehviewer
 import com.hippo.ehviewer.client.hosts
 import com.hippo.ehviewer.client.hostsDsl
 
-val dFEnabledDomains = listOf(
-    "github.com", "api.github.com",
-    "ehgt.org", "gt0.ehgt.org", "gt1.ehgt.org", "gt2.ehgt.org", "gt3.ehgt.org", "ul.ehgt.org",
-    "e-hentai.org", "api.e-hentai.org", "forums.e-hentai.org", "repo.e-hentai.org", "upload.e-hentai.org",
-    "exhentai.org", "s.exhentai.org",
-)
-
 val builtInHosts = hostsDsl {
     hosts("exhentai.org", "s.exhentai.org") {
         "178.175.128.251" blockedInCN false
