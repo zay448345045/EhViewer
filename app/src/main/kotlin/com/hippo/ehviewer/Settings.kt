@@ -145,7 +145,6 @@ object Settings : DataStorePreferences(null) {
     var preloadImage by intPref("preload_image_2", 5)
     var downloadTimeout by intPref("download_timeout", 60)
     var theme by intPref("theme_2", -1).observed { updateWhenThemeChanges() }
-    var thumbResolution by intPref("thumb_resolution_2", 0)
     var readCacheSize by intPref("read_cache_size_2", 640)
     var launchPage by intPref("launch_page_2", 0)
     var commentThreshold by intPref("comment_threshold", -101)
@@ -207,9 +206,6 @@ object Settings : DataStorePreferences(null) {
     val keepScreenOn = boolPref("pref_keep_screen_on_key", true)
     val readerLongTapAction = boolPref("reader_long_tap", true)
     val pageTransitions = boolPref("pref_enable_transitions_key", true)
-    val readWithVolumeKeys = boolPref("reader_volume_keys", false)
-    val readWithVolumeKeysInterval = intPref("reader_volume_keys_interval", 0)
-    val readWithVolumeKeysInverted = boolPref("reader_volume_keys_inverted", false)
     val grayScale = boolPref("pref_grayscale", false)
     val invertedColors = boolPref("pref_inverted_colors", false)
     val readerWebtoonNav = intPref("reader_navigation_mode_webtoon", 0)

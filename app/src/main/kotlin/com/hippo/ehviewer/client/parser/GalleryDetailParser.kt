@@ -28,10 +28,10 @@ import com.hippo.ehviewer.client.data.GalleryCommentList
 import com.hippo.ehviewer.client.data.GalleryDetail
 import com.hippo.ehviewer.client.data.GalleryInfo.Companion.LOCAL_FAVORITED
 import com.hippo.ehviewer.client.data.GalleryInfo.Companion.NOT_FAVORITED
-import com.hippo.ehviewer.client.data.GalleryPreview
 import com.hippo.ehviewer.client.data.GalleryTagGroup
 import com.hippo.ehviewer.client.data.LargeGalleryPreview
 import com.hippo.ehviewer.client.data.NormalGalleryPreview
+import com.hippo.ehviewer.client.data.TagNamespace
 import com.hippo.ehviewer.client.exception.EhException
 import com.hippo.ehviewer.client.exception.OffensiveException
 import com.hippo.ehviewer.client.exception.ParseException
@@ -51,7 +51,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
-import org.jsoup.select.Elements
 import org.jsoup.select.NodeTraversor
 import org.jsoup.select.NodeVisitor
 
@@ -70,16 +69,12 @@ object GalleryDetailParser {
         Regex("<tr><td[^<>]*>Length:</td><td[^<>]*>([\\d,]+) pages</td></tr>")
     private val PATTERN_PREVIEW_PAGES =
         Regex("<td[^>]+><a[^>]+>([\\d,]+)</a></td><td[^>]+>(?:<a[^>]+>)?&gt;(?:</a>)?</td>")
-    private val PATTERN_NORMAL_PREVIEW =
-        Regex("<div class=\"gdtm\"[^>]*><div[^>]*width:(\\d+)[^>]*height:(\\d+)[^>]*\\(([^)]+)\\)[^>]*-(\\d+)px[^>]*><a[^>]*href=\"([^\"]+)\"[^>]*><img alt=\"([\\d,]+)\"")
-    private val PATTERN_NORMAL_PREVIEW_NEW =
-        Regex("<a href=\"([^\"]+)\">(?:<div>)?<div[^>]*title=\"Page (\\d+):[^>]*width:(\\d+)[^>]*height:(\\d+)[^>]*\\(([^)]+)\\)[^>]*-(\\d+)px[^>]*>")
-    private val PATTERN_LARGE_PREVIEW =
-        Regex("<a href=\"([^\"]+)\">(?:<div>)?<[^>]*title=\"Page (\\d+):[^>]*(?:url\\(|src=\")([^)\"]+)[)\"]")
     private val PATTERN_NEWER_DATE = Regex(", added (.+?)<br />")
     private val PATTERN_FAVORITE_SLOT =
         Regex("/fav.png\\); background-position:0px -(\\d+)px")
     private val EMPTY_GALLERY_COMMENT_LIST = GalleryCommentList(emptyList(), false)
+    private val PreviewRegex =
+        Regex("<a href=\"([^\"]+)\">(?:<div>)?<div title=\"Page (\\d+)(?:[^\"]+\"){2}\\D+(\\d+)\\D+(\\d+)[^(]+\\(([^)]+)\\)(?: -(\\d+))?")
 
     // dd MMMM yyyy, HH:mm
     private val WEB_COMMENT_DATE_FORMAT = LocalDateTime.Format {
@@ -109,7 +104,7 @@ object GalleryDetailParser {
         PATTERN_ERROR.find(body)?.run { throw EhException(groupValues[1]) }
         val document = Jsoup.parse(body)
         val galleryDetail = GalleryDetail(
-            tags = parseTagGroups(document),
+            tagGroups = parseTagGroups(document),
             comments = parseComments(document),
             previewPages = parsePreviewPages(body),
             previewList = parsePreviewList(body).first,
@@ -279,25 +274,22 @@ object GalleryDetailParser {
         }
     }
 
-    private fun parseTagGroup(element: Element): GalleryTagGroup? = Either.catch {
-        var nameSpace = element.child(0).text()
-        // Remove last ':'
-        nameSpace = nameSpace.substring(0, nameSpace.length - 1)
-        val group = GalleryTagGroup(nameSpace)
-        val tags = element.child(1).children()
-        tags.forEach {
-            var tag = it.text()
-            // Sometimes parody tag is followed with '|' and english translate, just remove them
-            val index = tag.indexOf('|')
-            if (index >= 0) {
-                tag = tag.substring(0, index).trim()
-            }
-            if (it.className() == "gtw") {
-                tag = "_$tag" // weak tag
-            }
-            group.add(tag)
+    private fun parseSingleTagGroup(element: Element): GalleryTagGroup? = Either.catch {
+        val nameSpace = with(element.child(0).text()) {
+            // Remove last ':'
+            TagNamespace.from(substring(0, length - 1))
         }
-        group.takeIf { it.isNotEmpty() }
+        checkNotNull(nameSpace) { "$nameSpace is not a valid tag namespace!" }
+        val tags = element.child(1).children().map { e ->
+            val text = e.text()
+            // Sometimes parody tag is followed with '|' and english translate, just remove them
+            val index = text.indexOf('|')
+            val tag = if (index >= 0) text.substring(0, index).trim() else text
+            // weak tag
+            if (e.className() == "gtw") "_$tag" else tag
+        }
+        check(tags.isNotEmpty()) { "TagGroup is empty!" }
+        GalleryTagGroup(nameSpace, tags)
     }.getOrElse {
         logcat(it)
         null
@@ -308,15 +300,7 @@ object GalleryDetailParser {
      */
     private fun parseTagGroups(document: Document): List<GalleryTagGroup> = Either.catch {
         val taglist = document.getElementById("taglist")!!
-        val tagGroups = taglist.child(0).child(0).children()
-        parseTagGroups(tagGroups)
-    }.getOrElse {
-        logcat(it)
-        emptyList()
-    }
-
-    private fun parseTagGroups(trs: Elements): List<GalleryTagGroup> = Either.catch {
-        trs.mapNotNull { parseTagGroup(it) }
+        taglist.child(0).child(0).children().mapNotNull(::parseSingleTagGroup)
     }.getOrElse {
         logcat(it)
         emptyList()
@@ -439,47 +423,23 @@ object GalleryDetailParser {
     fun parsePages(body: String): Int = PATTERN_PAGES.find(body)?.groupValues?.get(1)?.toIntOrNull()
         ?: throw ParseException("Parse pages error")
 
-    fun parsePreviewList(body: String): Pair<List<GalleryPreview>, List<String>> = runCatching { parseNormalPreview(body) }.getOrElse { parseLargePreview(body) }
-
-    private fun parseLargePreview(body: String): Pair<List<GalleryPreview>, List<String>> {
-        check(PATTERN_LARGE_PREVIEW.containsMatchIn(body))
-        return PATTERN_LARGE_PREVIEW.findAll(body).unzip {
-            val position = it.groupValues[2].toInt() - 1
-            val imageKey = getThumbKey(it.groupValues[3].trim())
-            val pageUrl = it.groupValues[1].trim()
-            LargeGalleryPreview(imageKey, position) to pageUrl
-        }.run {
-            first.toList() to second.toList()
-        }
-    }
-
-    private fun parseNormalPreview(body: String): Pair<List<GalleryPreview>, List<String>> {
-        val isOld = PATTERN_NORMAL_PREVIEW.containsMatchIn(body)
-        check(isOld || PATTERN_NORMAL_PREVIEW_NEW.containsMatchIn(body))
-        return if (isOld) {
-            PATTERN_NORMAL_PREVIEW.findAll(body).unzip {
-                val position = it.groupValues[6].toInt() - 1
-                val url = it.groupValues[3].trim()
-                val imageKey = getNormalPreviewKey(url)
-                val xOffset = it.groupValues[4].toIntOrNull() ?: 0
-                val width = it.groupValues[1].toInt()
-                val height = it.groupValues[2].toInt()
-                val pageUrl = it.groupValues[5].trim()
-                NormalGalleryPreview(url, imageKey, position, xOffset, width, height) to pageUrl
-            }
+    fun parsePreviewList(body: String) = PreviewRegex.findAll(body).unzip {
+        val pageUrl = it.groupValues[1]
+        val position = it.groupValues[2].toInt() - 1
+        val url = it.groupValues[5]
+        val offset = it.groupValues[6]
+        if (offset.isEmpty()) {
+            val imageKey = getThumbKey(url)
+            LargeGalleryPreview(imageKey, position)
         } else {
-            PATTERN_NORMAL_PREVIEW_NEW.findAll(body).unzip {
-                val position = it.groupValues[2].toInt() - 1
-                val url = it.groupValues[5].trim()
-                val imageKey = getNormalPreviewKey(url)
-                val xOffset = it.groupValues[6].toIntOrNull() ?: 0
-                val width = it.groupValues[3].toInt()
-                val height = it.groupValues[4].toInt()
-                val pageUrl = it.groupValues[1].trim()
-                NormalGalleryPreview(url, imageKey, position, xOffset, width, height) to pageUrl
-            }
-        }.run {
-            first.toList() to second.toList()
-        }
+            val imageKey = getNormalPreviewKey(url)
+            val width = it.groupValues[3].toInt()
+            val height = it.groupValues[4].toInt()
+            NormalGalleryPreview(url, imageKey, position, offset.toInt(), width, height)
+        } to pageUrl
+    }.run {
+        first.toList().apply {
+            if (isEmpty()) throw ParseException("Parse preview list error")
+        } to second.toList()
     }
 }

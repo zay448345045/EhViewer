@@ -53,6 +53,7 @@ import com.hippo.ehviewer.collectAsState
 import com.hippo.ehviewer.ui.tools.LocalDialogState
 import com.hippo.ehviewer.ui.tools.observed
 import com.hippo.ehviewer.ui.tools.rememberedAccessor
+import com.hippo.ehviewer.util.AdsPlaceholderFile
 import com.hippo.ehviewer.util.AppConfig
 import com.hippo.ehviewer.util.CrashHandler
 import com.hippo.ehviewer.util.ReadableTime
@@ -82,8 +83,6 @@ import kotlinx.coroutines.launch
 import moe.tarsin.coroutines.runSuspendCatching
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.dnsoverhttps.DnsOverHttps
-import okio.Path.Companion.toOkioPath
-import splitties.init.appCtx
 import tech.relaycorp.doh.DoHClient
 
 @Destination<RootGraph>
@@ -442,4 +441,3 @@ var doh2 = getEffectiveDoHUrl().runCatching { DoHClient(this) }.getOrNull()
 object EhDoH {
     fun lookup(hostname: String): List<InetAddress>? = doh?.runCatching { lookup(hostname).takeIf { it.isNotEmpty() } }?.onFailure { it.printStackTrace() }?.getOrNull()
 }
-val AdsPlaceholderFile = appCtx.filesDir.toOkioPath() / "AdsPlaceholder"

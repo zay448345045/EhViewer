@@ -298,7 +298,7 @@ fun GalleryDetailContent(
                 }
             }
             if (galleryDetail != null) {
-                galleryPreview(galleryDetail, previews) { navToReader(galleryDetail.galleryInfo, it) }
+                galleryPreview(previews) { navToReader(galleryDetail.galleryInfo, it) }
             }
         }
 
@@ -366,7 +366,7 @@ fun GalleryDetailContent(
                 }
             }
             if (galleryDetail != null) {
-                galleryPreview(galleryDetail, previews) { navToReader(galleryDetail.galleryInfo, it) }
+                galleryPreview(previews) { navToReader(galleryDetail.galleryInfo, it) }
             }
         }
     }
@@ -499,7 +499,7 @@ fun BelowHeader(galleryDetail: GalleryDetail) {
             text = stringResource(id = R.string.similar_gallery),
             onClick = {
                 val keyword = EhUtils.extractTitle(galleryDetail.title)
-                val artistTag = galleryDetail.tags.getArtistTag()
+                val artistTag = galleryDetail.tagGroups.getArtistTag()
                 if (null != keyword) {
                     navigate(
                         ListUrlBuilder(
@@ -643,7 +643,7 @@ fun BelowHeader(galleryDetail: GalleryDetail) {
         }
     }
     Spacer(modifier = Modifier.size(keylineMargin))
-    val tags = galleryDetail.tags
+    val tags = galleryDetail.tagGroups
     if (tags.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -723,11 +723,9 @@ private fun getRatingText(rating: Float): Int = when ((rating * 2).roundToInt())
 
 private fun List<GalleryTagGroup>.getArtistTag(): String? {
     for (tagGroup in this) {
-        if (tagGroup.isNotEmpty()) {
-            val namespace = tagGroup.groupName
-            if (namespace == TagNamespace.Artist.value || namespace == TagNamespace.Cosplayer.value) {
-                return "$namespace:${tagGroup[0].removePrefix("_")}"
-            }
+        val namespace = tagGroup.nameSpace
+        if (namespace == TagNamespace.Artist || namespace == TagNamespace.Cosplayer) {
+            return "$namespace:${tagGroup.tags[0].removePrefix("_")}"
         }
     }
     return null
@@ -777,19 +775,13 @@ private fun GalleryDetail?.collectPreviewItems(prefetchDistance: Int) = remember
     }.flow.cachedIn(viewModelScope)
 }.collectAsLazyPagingItems()
 
-private fun LazyGridScope.galleryPreview(
-    detail: GalleryDetail,
-    data: LazyPagingItems<GalleryPreview>,
-    onClick: (Int) -> Unit,
-) {
+private fun LazyGridScope.galleryPreview(data: LazyPagingItems<GalleryPreview>, onClick: (Int) -> Unit) {
     items(
         count = data.itemCount,
         key = data.itemKey(key = { item -> item.position }),
         contentType = { "preview" },
     ) { index ->
         val item = data[index]
-        with(detail) {
-            EhPreviewItem(item, index) { onClick(index) }
-        }
+        EhPreviewItem(item, index) { onClick(index) }
     }
 }
