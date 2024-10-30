@@ -16,7 +16,6 @@
 package com.hippo.ehviewer.client.data
 
 import android.os.Parcelable
-import com.hippo.ehviewer.Settings
 import com.hippo.ehviewer.client.EhUrl
 import com.hippo.ehviewer.client.EhUtils
 import com.hippo.ehviewer.client.addQueryParameter
@@ -150,7 +149,6 @@ data class ListUrlBuilder(
 
     fun build(): String = when (mode) {
         MODE_NORMAL, MODE_SUBSCRIPTION -> ehUrl(EhUrl.WATCHED_PATH.takeIf { mode == MODE_SUBSCRIPTION }) {
-            val category = if (!Settings.hasSignedIn.value && category <= 0) EhUtils.NON_H else category
             if (category > 0) {
                 addQueryParameter("f_cats", "${EhUtils.invCategory(category)}")
             }
