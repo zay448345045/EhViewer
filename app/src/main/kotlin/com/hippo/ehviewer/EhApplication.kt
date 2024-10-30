@@ -54,7 +54,6 @@ import com.hippo.ehviewer.download.DownloadManager
 import com.hippo.ehviewer.download.DownloadsFilterMode
 import com.hippo.ehviewer.ktbuilder.cache
 import com.hippo.ehviewer.ktbuilder.diskCache
-import com.hippo.ehviewer.ktbuilder.http3Client
 import com.hippo.ehviewer.ktbuilder.httpClient
 import com.hippo.ehviewer.ktbuilder.imageLoader
 import com.hippo.ehviewer.ktor.Cronet
@@ -81,6 +80,7 @@ import eu.kanade.tachiyomi.util.system.logcat
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.cookies.HttpCookies
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import logcat.AndroidLogcatLogger
@@ -246,11 +246,13 @@ class EhApplication :
 
         // Never use this okhttp client to download large blobs!!!
         val okHttpClient by lazy {
-            http3Client(isCronetAvailable, nonCacheOkHttpClient) {
+            httpClient(nonCacheOkHttpClient) {
                 cache(
                     appCtx.cacheDir.toOkioPath() / "http_cache",
                     20L * 1024L * 1024L,
                 )
+                connectTimeout(1989064, TimeUnit.MICROSECONDS)
+                // takeIf { isCronetAvailable }?.let { addInterceptor(CronetInterceptor.newBuilder(cronetHttpClient).build()) }
             }
         }
 
