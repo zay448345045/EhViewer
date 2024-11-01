@@ -28,13 +28,13 @@ import coil3.SingletonImageLoader
 import coil3.asImage
 import coil3.gif.AnimatedImageDecoder
 import coil3.gif.GifDecoder
+import coil3.network.ConnectivityChecker
 import coil3.network.NetworkFetcher
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.serviceLoaderEnabled
 import coil3.util.DebugLogger
-import com.hippo.ehviewer.client.EhCookieStore
 import com.hippo.ehviewer.client.EhDns
 import com.hippo.ehviewer.client.EhSSLSocketFactory
 import com.hippo.ehviewer.client.EhTagDatabase
@@ -79,7 +79,6 @@ import eu.kanade.tachiyomi.util.lang.withUIContext
 import eu.kanade.tachiyomi.util.system.logcat
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.cookies.HttpCookies
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -172,7 +171,7 @@ class EhApplication :
         interceptorCoroutineContext(Dispatchers.Default)
         components {
             serviceLoaderEnabled(false)
-            add(NetworkFetcher.Factory({ ktorClient.limitConcurrency() }))
+            add(NetworkFetcher.Factory({ ktorClient.limitConcurrency() }) { ConnectivityChecker.ONLINE })
             add(MergeInterceptor)
             add(DownloadThumbInterceptor)
             if (isAtLeastO) {
@@ -226,10 +225,7 @@ class EhApplication :
 
         val noRedirectKtorClient by lazy {
             HttpClient(ktorClient.engine) {
-                followRedirects = false
-                install(HttpCookies) {
-                    storage = EhCookieStore
-                }
+                configureCommon(redirect = false)
             }
         }
 

@@ -16,9 +16,6 @@ import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import com.hippo.ehviewer.EhApplication
 import com.hippo.ehviewer.EhApplication.Companion.nonH2OkHttpClient
-import com.hippo.ehviewer.Settings
-import com.hippo.ehviewer.client.CHROME_ACCEPT
-import com.hippo.ehviewer.client.CHROME_ACCEPT_LANGUAGE
 import com.hippo.ehviewer.client.EhCookieStore
 import com.hippo.ehviewer.client.EhUrl
 import com.hippo.ehviewer.client.EhUtils
@@ -103,9 +100,6 @@ fun AnimatedVisibilityScope.WebViewSignInScreen(navigator: DestinationsNavigator
                 .url(url)
                 .addHeader("Referer", EhUrl.URL_SIGN_IN)
                 .addHeader("Origin", EhUrl.URL_FORUMS)
-                .addHeader("User-Agent", Settings.userAgent)
-                .addHeader("Accept", CHROME_ACCEPT)
-                .addHeader("Accept-Language", CHROME_ACCEPT_LANGUAGE)
                 .build()
 
             return try {
@@ -171,9 +165,6 @@ fun AnimatedVisibilityScope.WebViewSignInScreen(navigator: DestinationsNavigator
             .post(formBody)
             .addHeader("Referer", EhUrl.URL_SIGN_IN)
             .addHeader("Origin", EhUrl.URL_FORUMS)
-            .addHeader("User-Agent", Settings.userAgent)
-            .addHeader("Accept", CHROME_ACCEPT)
-            .addHeader("Accept-Language", CHROME_ACCEPT_LANGUAGE)
             .build()
 
         fun parseSetCookieHeader(setCookie: String): Cookie? {

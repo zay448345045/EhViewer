@@ -22,7 +22,6 @@ fun configureCronetEngineBuilder(builder: ExperimentalCronetEngine.Builder) {
         enableQuic(true)
         setQuicHints()
         setCacheSettings()
-        setUserAgent(Settings.userAgent)
         setExperimentalOptions(buildExperimentalOptions().toString())
     }
 }

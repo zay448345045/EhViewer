@@ -21,10 +21,6 @@ plugins {
 val supportedAbis = arrayOf("arm64-v8a", "x86_64", "armeabi-v7a")
 
 android {
-    compileSdk = 35
-    buildToolsVersion = "35.0.0"
-    ndkVersion = "27.1.12297006"
-
     androidResources {
         generateLocaleConfig = true
         localeFilters += listOf(
