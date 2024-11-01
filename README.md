@@ -13,10 +13,10 @@ FooIbar/EhViewer的分叉。
 
 请前往 [Releases](//github.com/UjuiUjuMandan/EhViewer/releases) 下载与上游同步发布的 APK ， 或者去 [Actions](//github.com/UjuiUjuMandan/EhViewer/actions/workflows/ci.yml) 下载最新 CI 版本。
 
-| 变种          | 功能                    |
-|-------------|-----------------------|
-| Default     | Android 9+, 完全支持      |
-| Marshmallow | Android 6.0-8.1, 有限支持 |
+| 变种          | 最低 Android 版本 | 备注                      |
+|-------------|---------------|-------------------------|
+| Default     | 8.0           | 动画 WebP 支持需要 Android 9+ |
+| Marshmallow | 6.0           | 有限支持，无保证                |
 
 ## 缺陷和功能请求
 
