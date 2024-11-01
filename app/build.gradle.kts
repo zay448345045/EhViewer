@@ -80,8 +80,8 @@ android {
         applicationId = "moe.tarsin.ehviewer"
         minSdk = 26
         targetSdk = 35
-        versionCode = 180060
-        versionName = "1.12.1.4"
+        versionCode = 180061
+        versionName = "1.13.0"
         versionNameSuffix = "-cc"
         buildConfigField("String", "RAW_VERSION_NAME", "\"$versionName${versionNameSuffix.orEmpty()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"$commitSha\"")
