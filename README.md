@@ -3,11 +3,11 @@ FooIbar/EhViewer的分叉。
 变更：
 
 
-- 在 Cronet 使用 host\_resolver\_rules 规避 DNS 污染
+- 在 Cronet 使用 Host Resolver Rules 规避 DNS 污染
 - 恢复 OkHttp 引擎、内置 Hosts、域前置和 DoH (https://github.com/FooIbar/EhViewer/issues/12#issuecomment-1713695222)
 - 恢复 Cookie 登录 (https://github.com/FooIbar/EhViewer/issues/692#issuecomment-1929373085)
 - 支持登月账号登录 (https://github.com/FooIbar/EhViewer/issues/134#issuecomment-1784012743)
-- 在 OkHttp 支持 ECH
+- 部分支持 ECH ([guardianproject/conscrypt](https://github.com/guardianproject/conscrypt))
 
 ## 下载
 
