@@ -4,7 +4,10 @@ import android.util.Log
 import com.hippo.ehviewer.ui.settings.censoredDoh
 import java.util.Base64
 import javax.net.ssl.SSLSocket
+import okhttp3.Interceptor
+import okhttp3.Response
 import org.conscrypt.Conscrypt
+import org.conscrypt.EchRejectedException
 import org.xbill.DNS.Lookup
 import org.xbill.DNS.Type
 
@@ -15,7 +18,7 @@ private var cachedEchConfig: ByteArray? = null
 private var expirationTime: Long = 0
 
 fun getCachedEchConfig(): ByteArray? = cachedEchConfig?.takeIf { System.currentTimeMillis() < expirationTime }?.also {
-    Log.d("ECH", "Cache hit")
+    Log.d("ECH", "Cache hit, TTL ${expirationTime - System.currentTimeMillis()}ms left")
 }
 
 fun logEchConfigList(socket: SSLSocket, host: String) {
@@ -42,5 +45,17 @@ suspend fun fetchAndCacheEchConfig() {
         expirationTime = System.currentTimeMillis() + CACHE_EXPIRATION_TIME
     }.onFailure {
         Log.w("ECH", "Failed to fetch ECH config", it)
+    }
+}
+
+// TODO: Remove when Conscrypt fully implemented Retry Config
+// https://github.com/google/conscrypt/pull/1044
+class EchRejectedExceptionInterceptor : Interceptor {
+
+    override fun intercept(chain: Interceptor.Chain): Response = try {
+        chain.proceed(chain.request())
+    } catch (e: EchRejectedException) {
+        expirationTime = 0
+        throw e
     }
 }

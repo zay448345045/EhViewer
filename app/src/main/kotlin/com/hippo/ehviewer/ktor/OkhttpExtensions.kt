@@ -2,6 +2,7 @@ package com.hippo.ehviewer.ktor
 
 import com.hippo.ehviewer.EhApplication.Companion.nonCacheOkHttpClient
 import com.hippo.ehviewer.Settings
+import com.hippo.ehviewer.client.EchRejectedExceptionInterceptor
 import com.hippo.ehviewer.util.isAtLeastQ
 import eu.kanade.tachiyomi.network.interceptor.UncaughtExceptionInterceptor
 import io.ktor.client.engine.okhttp.OkHttpConfig
@@ -19,6 +20,7 @@ fun OkHttpConfig.configureClient() {
     if (Settings.dF) {
         preconfigured = nonCacheOkHttpClient
     }
+    addInterceptor(EchRejectedExceptionInterceptor())
     addInterceptor(UncaughtExceptionInterceptor())
     config {
         if (isAtLeastQ && !Settings.dF) {
