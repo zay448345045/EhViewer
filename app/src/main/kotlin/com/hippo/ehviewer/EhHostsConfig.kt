@@ -4,7 +4,7 @@ import com.hippo.ehviewer.client.hosts
 import com.hippo.ehviewer.client.hostsDsl
 
 val builtInHosts = hostsDsl {
-    hosts("exhentai.org", "s.exhentai.org") {
+    hosts("exhentai.org") {
         "178.175.128.251" blockedInCN false
         "178.175.128.252" blockedInCN false
         "178.175.128.253" blockedInCN false
