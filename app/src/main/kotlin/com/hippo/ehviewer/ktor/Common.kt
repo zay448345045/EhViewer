@@ -20,7 +20,7 @@ fun <T : HttpClientEngineConfig> HttpClientConfig<T>.configureCommon(redirect: B
         storage = EhCookieStore
     }
     install(HttpTimeout) {
-        requestTimeoutMillis = 10_000
+        connectTimeoutMillis = 10_000
     }
     install(UserAgent) {
         agent = userAgent
