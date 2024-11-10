@@ -169,7 +169,7 @@ object Settings : DataStorePreferences(null) {
     var enableQuic by boolPref("enable_quic", false)
     var saveAsCbz by boolPref("save_as_cbz", false)
     var archiveMetadata by boolPref("archive_metadata", true)
-    var desktopSite by boolPref("desktop_site", false)
+    var desktopSite by boolPref("desktop_site", true)
     var recentFavCat by intPref("recent_fav_cat", FavListUrlBuilder.FAV_CAT_LOCAL)
     var defaultFavSlot by intPref("default_favorite_slot", -2)
     var securityDelay by intPref("require_unlock_delay", 0)
@@ -219,9 +219,6 @@ object Settings : DataStorePreferences(null) {
     val showNavigationOverlayOnStart = boolPref("reader_navigation_overlay_on_start", false)
     val stripExtraneousAds = boolPref("strip_extraneous_ads", false)
 
-    val userAgent
-        get() = if (desktopSite) CHROME_USER_AGENT else CHROME_MOBILE_USER_AGENT
-
     init {
         if ("CN" == Locale.getDefault().country) {
             edit {
@@ -263,6 +260,3 @@ object Settings : DataStorePreferences(null) {
         }
     }
 }
-
-private const val CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${BuildConfig.CHROME_VERSION}.0.0.0 Safari/537.36"
-private const val CHROME_MOBILE_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${BuildConfig.CHROME_VERSION}.0.0.0 Mobile Safari/537.36"
