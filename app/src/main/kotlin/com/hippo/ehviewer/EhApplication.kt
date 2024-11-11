@@ -36,6 +36,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.serviceLoaderEnabled
 import coil3.util.DebugLogger
+import com.google.net.cronet.okhttptransport.CronetInterceptor
 import com.hippo.ehviewer.client.EhDns
 import com.hippo.ehviewer.client.EhSSLSocketFactory
 import com.hippo.ehviewer.client.EhTagDatabase
@@ -254,8 +255,8 @@ class EhApplication :
                     appCtx.cacheDir.toOkioPath() / "http_cache",
                     20L * 1024L * 1024L,
                 )
-                connectTimeout(1989064, TimeUnit.MICROSECONDS)
-                // takeIf { isCronetAvailable }?.let { addInterceptor(CronetInterceptor.newBuilder(cronetHttpClient).build()) }
+                callTimeout(1989064, TimeUnit.MICROSECONDS)
+                takeIf { isCronetAvailable }?.let { addInterceptor(CronetInterceptor.newBuilder(cronetHttpClient).build()) }
             }
         }
 
