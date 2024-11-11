@@ -16,7 +16,9 @@ FooIbar/EhViewer的分叉。
 | 变种          | 最低 Android 版本 | 备注                      |
 |-------------|---------------|-------------------------|
 | Default     | 8.0           | 动画 WebP 支持需要 Android 9+ |
-| Marshmallow | 6.0           | 有限支持，无保证                |
+| Marshmallow | 6.0*          | 有限支持，无保证                |
+
+*运行 Android 6 的设备需安装 [ISRG Root X1](https://letsencrypt.org/certs/isrgrootx1.pem) 证书
 
 ## 缺陷和功能请求
 
