@@ -28,7 +28,6 @@ fun postLogin() = GlobalScope.async(Dispatchers.IO) {
     runCatching {
         // For the `star` cookie
         EhEngine.getNews(false)
-        EhCookieStore.copyNecessaryCookies()
 
         // Get cookies for image limits
         launch {
