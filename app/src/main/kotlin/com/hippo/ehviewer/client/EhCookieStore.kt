@@ -1,8 +1,6 @@
 package com.hippo.ehviewer.client
 
-import android.util.Log
 import android.webkit.CookieManager
-import com.hippo.ehviewer.Settings
 import io.ktor.client.plugins.cookies.CookiesStorage
 import io.ktor.http.Cookie
 import io.ktor.http.Url
@@ -65,10 +63,6 @@ object EhCookieStore : CookiesStorage {
 
     // See https://github.com/Ehviewer-Overhauled/Ehviewer/issues/873
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
-        if (Settings.enableIgnoreSetCookie && (cookie.value == "0" || (cookie.name == KEY_IGNEOUS && cookie.value == "deleted"))) {
-            Log.d("EhCookieStore", "Ignoring cookie: ${cookie.name} with value ${cookie.value} because it meets the ignore criteria.")
-            return
-        }
         if (cookie.name != KEY_UTMP_NAME) {
             manager.setCookie(requestUrl.toString(), renderSetCookieHeader(cookie))
         }
