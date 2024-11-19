@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -78,6 +79,7 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
 
     var ipbMemberId by rememberSaveable { mutableStateOf("") }
     var ipbPassHash by rememberSaveable { mutableStateOf("") }
+    var igneous by rememberSaveable { mutableStateOf("") }
 
     var ipbMemberIdErrorState by rememberSaveable { mutableStateOf(false) }
     var ipbPassHashErrorState by rememberSaveable { mutableStateOf(false) }
@@ -88,10 +90,13 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
 
     val noCookies = stringResource(R.string.from_clipboard_error)
 
-    fun storeCookie(id: String, hash: String) {
+    fun storeCookie(id: String, hash: String, igneous: String) {
         EhUtils.signOut()
         EhCookieStore.addCookie(EhCookieStore.KEY_IPB_MEMBER_ID, id, EhUrl.DOMAIN_E)
         EhCookieStore.addCookie(EhCookieStore.KEY_IPB_PASS_HASH, hash, EhUrl.DOMAIN_E)
+        if (igneous.isNotBlank() && igneous != "mystery") {
+            EhCookieStore.addCookie(EhCookieStore.KEY_IGNEOUS, igneous, EhUrl.DOMAIN_EX)
+        }
     }
 
     fun login() {
@@ -112,7 +117,7 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
         isProgressIndicatorVisible = true
         signInJob = coroutineScope.launchIO {
             runCatching {
-                storeCookie(ipbMemberId, ipbPassHash)
+                storeCookie(ipbMemberId, ipbPassHash, igneous)
                 EhEngine.getProfile()
             }.onSuccess {
                 withNonCancellableContext { postLogin() }
@@ -170,6 +175,7 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
                 when (kv[0].trim { it <= ' ' }.lowercase(Locale.getDefault())) {
                     "ipb_member_id" -> ipbMemberId = kv[1].trim { it <= ' ' }
                     "ipb_pass_hash" -> ipbPassHash = kv[1].trim { it <= ' ' }
+                    "igneous" -> igneous = kv[1].trim { it <= ' ' }
                 }
             }
             login()
@@ -215,6 +221,14 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
                 }
             },
             isError = ipbPassHashErrorState,
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = igneous,
+            onValueChange = { igneous = it.trim { char -> char <= ' ' } },
+            modifier = Modifier.width(dimensionResource(id = R.dimen.single_max_width)),
+            label = { Text(text = "igneous") },
+            keyboardActions = KeyboardActions(onDone = { login() }),
             singleLine = true,
         )
     }
