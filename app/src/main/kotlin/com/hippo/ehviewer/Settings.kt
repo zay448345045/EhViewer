@@ -131,6 +131,7 @@ object Settings : DataStorePreferences(null) {
     val displayName = stringOrNullPref("display_name", null)
     val avatar = stringOrNullPref("avatar", null)
     val recentDownloadLabel = stringOrNullPref("recent_download_label", null)
+    val showVoteStatus = boolPref("show_vote_status", false)
 
     var downloadScheme by stringOrNullPref("image_scheme", null)
     var downloadAuthority by stringOrNullPref("image_authority", null)
@@ -169,7 +170,6 @@ object Settings : DataStorePreferences(null) {
     var enableQuic by boolPref("enable_quic", false)
     var saveAsCbz by boolPref("save_as_cbz", false)
     var archiveMetadata by boolPref("archive_metadata", true)
-    var desktopSite by boolPref("desktop_site", true)
     var recentFavCat by intPref("recent_fav_cat", FavListUrlBuilder.FAV_CAT_LOCAL)
     var defaultFavSlot by intPref("default_favorite_slot", -2)
     var securityDelay by intPref("require_unlock_delay", 0)
@@ -203,6 +203,7 @@ object Settings : DataStorePreferences(null) {
     val keepScreenOn = boolPref("pref_keep_screen_on_key", true)
     val readerLongTapAction = boolPref("reader_long_tap", true)
     val pageTransitions = boolPref("pref_enable_transitions_key", true)
+    val readerReverseControls = boolPref("reader_volume_keys_inverted", false)
     val grayScale = boolPref("pref_grayscale", false)
     val invertedColors = boolPref("pref_inverted_colors", false)
     val readerWebtoonNav = intPref("reader_navigation_mode_webtoon", 0)

@@ -2,7 +2,7 @@
 aboutlibraries = "11.2.3"
 accompanist = "0.36.0"
 agp = "8.8.0-alpha09"
-androidx-activity = "1.10.0-alpha03"
+androidx-activity = "1.10.0-beta01"
 androidx-appcompat = "1.7.0"
 androidx-biometric = "1.4.0-alpha02"
 androidx-browser = "1.8.0"
@@ -11,31 +11,31 @@ androidx-core = "1.15.0"
 androidx-core-splashscreen = "1.2.0-alpha02"
 androidx-datastore = "1.1.1"
 androidx-graphics-path = "1.0.1"
-androidx-lifecycle = "2.9.0-alpha06"
-androidx-paging = "3.3.2"
+androidx-lifecycle = "2.9.0-alpha07"
+androidx-paging = "3.3.4"
 androidx-room = "2.7.0-alpha11"
 androidx-work = "2.10.0"
-arrow = "1.2.4"
-coil = "3.0.2"
-compose-bom = "2024.10.01"
+arrow = "2.0.0-rc.1"
+coil = "3.0.4"
+compose-bom = "2024.11.00"
 compose-destinations = "2.1.0-beta14"
 dnsjava = "3.6.2"
 doh = "1.0.66"
-kotlin = "2.1.0-RC"
+kotlin = "2.1.0"
 kotlinx-coroutines = "1.9.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.7.3"
-ksp = "2.1.0-RC-1.0.27"
+ksp = "2.1.0-1.0.29"
 ktor = "3.0.1"
 okhttp = "5.0.0-alpha.14"
 okio = "3.9.1"
 runner = "1.6.2"
 splitties = "3.0.0"
-telephoto = "0.13.0"
+telephoto = "0.14.0"
 xmlutil = "0.90.3"
 junit = "1.2.1"
 uiautomator = "2.4.0-alpha01"
-benchmark = "1.4.0-alpha04"
+benchmark = "1.4.0-alpha05"
 profileinstaller = "1.4.1"
 testng = "6.9.6"
 
@@ -69,6 +69,7 @@ androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "an
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidx-work" }
 
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines" }
+arrow-functions = { module = "io.arrow-kt:arrow-functions" }
 arrow-resilience = { module = "io.arrow-kt:arrow-resilience" }
 arrow-stack = { module = "io.arrow-kt:arrow-stack", version.ref = "arrow" }
 
@@ -102,7 +103,7 @@ diff = "io.github.petertrr:kotlin-multiplatform-diff:0.7.0"
 dnsjava = { module = "dnsjava:dnsjava", version.ref = "dnsjava" }
 doh = { module = "tech.relaycorp:doh", version.ref = "doh" }
 
-jsoup = "org.jsoup:jsoup:1.18.1"
+jsoup = "org.jsoup:jsoup:1.18.3"
 
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
@@ -138,6 +139,7 @@ telephoto-zoomable = { module = "me.saket.telephoto:zoomable", version.ref = "te
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 
 [bundles]
+arrow = ["arrow-fx-coroutines", "arrow-functions", "arrow-resilience"]
 coil = ["coil-compose", "coil-gif", "coil-network"]
 compose = ["compose-foundation", "compose-material-icons-extended", "compose-material3", "compose-material3-adaptive", "compose-ui-util"]
 cronet = ["cronet-api", "cronet-gms", "cronet-okhttp"]

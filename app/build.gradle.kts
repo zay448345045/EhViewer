@@ -243,8 +243,7 @@ dependencies {
     implementation(libs.reorderable)
 
     implementation(platform(libs.arrow.stack))
-    implementation(libs.arrow.fx.coroutines)
-    implementation(libs.arrow.resilience)
+    implementation(libs.bundles.arrow)
 
     // https://coil-kt.github.io/coil/changelog/
     implementation(platform(libs.coil.bom))
@@ -295,6 +294,7 @@ kotlin {
             "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
             "-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi",
             "-opt-in=androidx.paging.ExperimentalPagingApi",
+            "-opt-in=kotlin.ExperimentalStdlibApi",
             "-opt-in=kotlin.contracts.ExperimentalContracts",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kotlinx.coroutines.FlowPreview",

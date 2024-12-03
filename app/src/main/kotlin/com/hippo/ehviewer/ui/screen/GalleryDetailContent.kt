@@ -82,10 +82,13 @@ import com.hippo.ehviewer.client.data.GalleryPreview
 import com.hippo.ehviewer.client.data.GalleryTagGroup
 import com.hippo.ehviewer.client.data.ListUrlBuilder
 import com.hippo.ehviewer.client.data.TagNamespace
+import com.hippo.ehviewer.client.data.V2GalleryPreview
+import com.hippo.ehviewer.client.data.VoteStatus
 import com.hippo.ehviewer.client.data.asGalleryDetail
 import com.hippo.ehviewer.client.data.findBaseInfo
 import com.hippo.ehviewer.client.exception.EhException
 import com.hippo.ehviewer.client.exception.NoHAtHClientException
+import com.hippo.ehviewer.coil.PrefetchAround
 import com.hippo.ehviewer.coil.justDownload
 import com.hippo.ehviewer.collectAsState
 import com.hippo.ehviewer.dao.DownloadInfo
@@ -94,8 +97,8 @@ import com.hippo.ehviewer.dao.FilterMode
 import com.hippo.ehviewer.download.DownloadManager
 import com.hippo.ehviewer.icons.EhIcons
 import com.hippo.ehviewer.icons.filled.Magnet
+import com.hippo.ehviewer.ktbuilder.executeIn
 import com.hippo.ehviewer.ktbuilder.imageRequest
-import com.hippo.ehviewer.ktbuilder.launchIn
 import com.hippo.ehviewer.ui.GalleryInfoBottomSheet
 import com.hippo.ehviewer.ui.MainActivity
 import com.hippo.ehviewer.ui.confirmRemoveDownload
@@ -147,7 +150,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import moe.tarsin.coroutines.runSuspendCatching
 import moe.tarsin.coroutines.runSwallowingWithUI
@@ -159,6 +161,7 @@ fun GalleryDetailContent(
     contentPadding: PaddingValues,
     getDetailError: String,
     onRetry: () -> Unit,
+    voteTag: VoteTag,
     modifier: Modifier,
 ) {
     val keylineMargin = dimensionResource(R.dimen.keyline_margin)
@@ -243,7 +246,7 @@ fun GalleryDetailContent(
         }
     }
 
-    val previews = galleryDetail.collectPreviewItems(thumbColumns)
+    val previews = galleryDetail?.collectPreviewItems()
     when (windowSizeClass.windowWidthSizeClass) {
         WindowWidthSizeClass.MEDIUM, WindowWidthSizeClass.COMPACT -> FastScrollLazyVerticalGrid(
             columns = GridCells.Fixed(thumbColumns),
@@ -290,7 +293,7 @@ fun GalleryDetailContent(
                     if (getDetailError.isNotBlank()) {
                         GalleryDetailErrorTip(error = getDetailError, onClick = onRetry)
                     } else if (galleryDetail != null) {
-                        BelowHeader(galleryDetail)
+                        BelowHeader(galleryDetail, voteTag)
                     } else {
                         Box(
                             modifier = Modifier.fillMaxSize().padding(keylineMargin),
@@ -301,8 +304,8 @@ fun GalleryDetailContent(
                     }
                 }
             }
-            if (galleryDetail != null) {
-                galleryPreview(previews) { navToReader(galleryDetail.galleryInfo, it) }
+            if (galleryDetail != null && previews != null) {
+                galleryPreview(galleryDetail, previews) { navToReader(galleryDetail.galleryInfo, it) }
             }
         }
 
@@ -358,7 +361,7 @@ fun GalleryDetailContent(
                     if (getDetailError.isNotBlank()) {
                         GalleryDetailErrorTip(error = getDetailError, onClick = onRetry)
                     } else if (galleryDetail != null) {
-                        BelowHeader(galleryDetail)
+                        BelowHeader(galleryDetail, voteTag)
                     } else {
                         Box(
                             modifier = Modifier.fillMaxSize().padding(keylineMargin),
@@ -369,8 +372,8 @@ fun GalleryDetailContent(
                     }
                 }
             }
-            if (galleryDetail != null) {
-                galleryPreview(previews) { navToReader(galleryDetail.galleryInfo, it) }
+            if (galleryDetail != null && previews != null) {
+                galleryPreview(galleryDetail, previews) { navToReader(galleryDetail.galleryInfo, it) }
             }
         }
     }
@@ -378,7 +381,7 @@ fun GalleryDetailContent(
 
 context(Context, CoroutineScope, DestinationsNavigator, DialogState, SnackbarHostState)
 @Composable
-fun BelowHeader(galleryDetail: GalleryDetail) {
+fun BelowHeader(galleryDetail: GalleryDetail, voteTag: VoteTag) {
     @Composable
     fun EhIconButton(
         icon: ImageVector,
@@ -503,7 +506,7 @@ fun BelowHeader(galleryDetail: GalleryDetail) {
             text = stringResource(id = R.string.similar_gallery),
             onClick = {
                 val keyword = EhUtils.extractTitle(galleryDetail.title)
-                val artistTag = galleryDetail.tagGroups.getArtistTag()
+                val artistTag = galleryDetail.tagGroups.artistTag()
                 if (null != keyword) {
                     navigate(
                         ListUrlBuilder(
@@ -700,30 +703,26 @@ fun BelowHeader(galleryDetail: GalleryDetail) {
         val filterAdded = stringResource(R.string.filter_added)
         val upTag = stringResource(R.string.tag_vote_up)
         val downTag = stringResource(R.string.tag_vote_down)
+        val withDraw = stringResource(R.string.tag_vote_withdraw)
         GalleryTags(
             tagGroups = tags,
             onTagClick = {
                 navigate(ListUrlBuilder(mode = ListUrlBuilder.MODE_TAG, mKeyword = it).asDst())
             },
-            onTagLongClick = { translated, tag ->
-                val index = tag.indexOf(':')
-                val temp = if (index >= 0) {
-                    tag.substring(index + 1)
-                } else {
-                    tag
-                }
+            onTagLongClick = { tag, translation, vote ->
+                val rawValue = tag.substringAfter(':')
                 launchIO {
                     awaitSelectAction {
                         onSelect(copy) {
                             addTextToClipboard(tag)
                         }
-                        if (temp != translated) {
+                        if (rawValue != translation) {
                             onSelect(copyTrans) {
-                                addTextToClipboard(translated)
+                                addTextToClipboard(translation)
                             }
                         }
                         onSelect(showDefine) {
-                            openBrowser(EhUrl.getTagDefinitionUrl(temp))
+                            openBrowser(EhUrl.getTagDefinitionUrl(rawValue))
                         }
                         onSelect(addFilter) {
                             awaitConfirmationOrCancel { Text(text = stringResource(R.string.filter_the_tag, tag)) }
@@ -731,8 +730,14 @@ fun BelowHeader(galleryDetail: GalleryDetail) {
                             showSnackbar(filterAdded)
                         }
                         if (galleryDetail.apiUid >= 0) {
-                            onSelect(upTag) { galleryDetail.voteTag(tag, 1) }
-                            onSelect(downTag) { galleryDetail.voteTag(tag, -1) }
+                            when (vote) {
+                                VoteStatus.NONE -> {
+                                    onSelect(upTag) { galleryDetail.voteTag(tag, 1) }
+                                    onSelect(downTag) { galleryDetail.voteTag(tag, -1) }
+                                }
+                                VoteStatus.UP -> onSelect(withDraw) { galleryDetail.voteTag(tag, -1) }
+                                VoteStatus.DOWN -> onSelect(withDraw) { galleryDetail.voteTag(tag, 1) }
+                            }
                         }
                     }()
                 }
@@ -762,27 +767,18 @@ private fun getRatingText(rating: Float): Int = when ((rating * 2).roundToInt())
     else -> R.string.rating_none
 }
 
-private fun List<GalleryTagGroup>.getArtistTag(): String? {
-    for (tagGroup in this) {
-        val namespace = tagGroup.nameSpace
-        if (namespace == TagNamespace.Artist || namespace == TagNamespace.Cosplayer) {
-            return "$namespace:${tagGroup.tags[0].removePrefix("_")}"
-        }
-    }
-    return null
-}
+private fun List<GalleryTagGroup>.artistTag() = find { (ns, _) -> ns == TagNamespace.Artist || ns == TagNamespace.Cosplayer }?.let { (ns, tags) -> "$ns:${tags[0].text}" }
 
 context(Context)
 @Composable
-private fun GalleryDetail?.collectPreviewItems(prefetchDistance: Int) = rememberInVM(this) {
-    val detail = this@collectPreviewItems ?: return@rememberInVM emptyFlow()
-    val pageSize = detail.previewList.size
-    val pages = detail.pages
-    val previewPagesMap = detail.previewList.associateBy { it.position } as MutableMap
+private fun GalleryDetail.collectPreviewItems() = rememberInVM(previewList) {
+    val pageSize = previewList.size
+    val pages = pages
+    val previewPagesMap = previewList.associateBy { it.position } as MutableMap
     Pager(
         PagingConfig(
             pageSize = pageSize,
-            prefetchDistance = prefetchDistance,
+            prefetchDistance = pageSize.coerceAtMost(100),
             initialLoadSize = pageSize,
             jumpThreshold = 2 * pageSize,
         ),
@@ -793,7 +789,7 @@ private fun GalleryDetail?.collectPreviewItems(prefetchDistance: Int) = remember
                 val key = params.key ?: 0
                 val up = getOffset(params, key, pages)
                 val end = (up + getLimit(params, key) - 1).coerceAtMost(pages - 1)
-                detail.runSuspendCatching {
+                runSuspendCatching {
                     (up..end).filterNot { it in previewPagesMap }.map { it / pageSize }.toSet()
                         .parMap(concurrency = Settings.multiThreadDownload) { page ->
                             val url = EhUrl.getGalleryDetailUrl(gid, token, page, false)
@@ -801,7 +797,7 @@ private fun GalleryDetail?.collectPreviewItems(prefetchDistance: Int) = remember
                         }.flattenForEach {
                             previewPagesMap[it.position] = it
                             if (Settings.preloadThumbAggressively) {
-                                imageRequest(it) { justDownload() }.launchIn(viewModelScope)
+                                imageRequest(it) { justDownload() }.executeIn(viewModelScope)
                             }
                         }
                 }.foldToLoadResult {
@@ -816,7 +812,9 @@ private fun GalleryDetail?.collectPreviewItems(prefetchDistance: Int) = remember
     }.flow.cachedIn(viewModelScope)
 }.collectAsLazyPagingItems()
 
-private fun LazyGridScope.galleryPreview(data: LazyPagingItems<GalleryPreview>, onClick: (Int) -> Unit) {
+context(Context)
+private fun LazyGridScope.galleryPreview(detail: GalleryDetail, data: LazyPagingItems<GalleryPreview>, onClick: (Int) -> Unit) {
+    val isV2Thumb = detail.previewList.first() is V2GalleryPreview
     items(
         count = data.itemCount,
         key = data.itemKey(key = { item -> item.position }),
@@ -824,5 +822,6 @@ private fun LazyGridScope.galleryPreview(data: LazyPagingItems<GalleryPreview>, 
     ) { index ->
         val item = data[index]
         EhPreviewItem(item, index) { onClick(index) }
+        PrefetchAround(data, index, if (isV2Thumb) 20 else 6, ::imageRequest)
     }
 }

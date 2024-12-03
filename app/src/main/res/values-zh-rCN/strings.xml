@@ -90,6 +90,7 @@
     <string name="quick_search_tip">点击“+”来添加快速搜索</string>
     <string name="add_quick_search_dialog_title">添加快速搜索</string>
     <string name="name_is_empty">名称为空</string>
+    <string name="translate_tag_for_tagger">使用翻译标签</string>
     <string name="delete">删除</string>
     <string name="add_quick_search_tip">画廊列表的状态将被保存为快速搜索。如果你想保存搜索面板的状态，请先执行搜索。</string>
     <string name="readme">读我</string>
@@ -305,6 +306,7 @@
     <string name="settings_eh_show_jpn_title_summary">需同时在 EHentai 网站设置中启用 Japanese Title</string>
     <string name="settings_eh_show_gallery_pages">显示画廊页数</string>
     <string name="settings_eh_show_gallery_pages_summary">在画廊列表中显示页数</string>
+    <string name="settings_eh_show_vote_status">显示标签投票状态</string>
     <string name="settings_eh_show_gallery_comments">显示画廊评论</string>
     <string name="settings_eh_show_gallery_comments_summary">在画廊详情页中显示评论</string>
     <string name="settings_eh_show_gallery_comment_threshold">评论分数阈值</string>
@@ -315,6 +317,7 @@
     <string name="settings_eh_tag_translations_source_url">https://github.com/EhTagTranslation/Editor/wiki</string>
     <string name="settings_eh_filter">屏蔽列表</string>
     <string name="settings_eh_filter_summary">根据标题、上传者、标签、评论者屏蔽画廊或评论</string>
+    <string name="settings_read_reverse_controls">反转物理按键控制</string>
     <string name="settings_block_extraneous_ads">[实验性] 屏蔽外部广告</string>
     <string name="settings_ads_placeholder">[可选] 选择替换外部广告的图片</string>
     <string name="settings_download">下载</string>
@@ -462,12 +465,13 @@
     <string name="toplist">排行</string>
     <string name="tag_vote_down">不，这不是</string>
     <string name="tag_vote_up">是的，这很正确</string>
+    <string name="tag_vote_withdraw">撤回投票</string>
     <string name="tag_vote_successfully">投票成功</string>
     <string name="from_clipboard">从剪贴板导入</string>
     <string name="from_clipboard_error">未在剪贴板中发现 Cookies。</string>
     <string name="delete_search_history">从搜索记录中删除“%s”？</string>
     <string name="action_add_tag">添加标签</string>
-    <string name="action_add_tag_tip">添加新标签，用逗号「，」分割</string>
+    <string name="action_add_tag_tip">添加新标签</string>
     <string name="comment_user_uploader">%s （上传者）</string>
     <string name="no_network">无网络</string>
     <string name="settings_eh_metered_network_warning">流量计费网络警告</string>

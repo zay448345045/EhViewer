@@ -104,6 +104,7 @@
     <string name="quick_search">Quick search</string>
     <string name="quick_search_tip">Tap \"+\" to add Quick Search</string>
     <string name="add_quick_search_dialog_title">Add Quick Search</string>
+    <string name="translate_tag_for_tagger">Use tag translation</string>
     <string name="name_is_empty">Name is empty</string>
     <string name="delete">Delete</string>
     <string name="add_quick_search_tip">The state of gallery list will be saved as quick search. Perform a search first to save the state of search panel.</string>
@@ -320,6 +321,7 @@
     <string name="settings_eh_show_jpn_title_summary">Require enabling Japanese Title in Settings on EHentai website</string>
     <string name="settings_eh_show_gallery_pages">Show gallery pages</string>
     <string name="settings_eh_show_gallery_pages_summary">Display the number of pages in the gallery list</string>
+    <string name="settings_eh_show_vote_status">Show tag vote status</string>
     <string name="settings_eh_show_gallery_comments">Show gallery comments</string>
     <string name="settings_eh_show_gallery_comments_summary">Show comments on the gallery details page</string>
     <string name="settings_eh_show_gallery_comment_threshold">Comment score threshold</string>
@@ -330,6 +332,7 @@
     <string name="settings_eh_tag_translations_source_url">https://placeholder</string>
     <string name="settings_eh_filter">Blockers</string>
     <string name="settings_eh_filter_summary">Block gallery or comment by title, uploader, tags and commenter</string>
+    <string name="settings_read_reverse_controls">Reverse physical key controls</string>
     <string name="settings_block_extraneous_ads">[Experimental] Block extraneous ads</string>
     <string name="settings_ads_placeholder">[Optional] Pick placeholder to replace ads</string>
     <string name="settings_download">Download</string>
@@ -478,12 +481,13 @@
     <string name="toplist">Toplist</string>
     <string name="tag_vote_down">Vote down</string>
     <string name="tag_vote_up">Vote up</string>
+    <string name="tag_vote_withdraw">Withdraw vote</string>
     <string name="tag_vote_successfully">Vote successfully</string>
     <string name="from_clipboard">From clipboard</string>
     <string name="from_clipboard_error">No cookies found in clipboard.</string>
     <string name="delete_search_history">Delete \"%s\" from search history?</string>
     <string name="action_add_tag">Add tag</string>
-    <string name="action_add_tag_tip">Enter new tags, separated with comma</string>
+    <string name="action_add_tag_tip">Enter new tags</string>
     <string name="comment_user_uploader">%s (Uploader)</string>
     <string name="no_network">No network</string>
     <string name="settings_eh_metered_network_warning">Metered network warning</string>

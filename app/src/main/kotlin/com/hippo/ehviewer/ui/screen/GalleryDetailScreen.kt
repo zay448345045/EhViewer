@@ -1,6 +1,5 @@
 package com.hippo.ehviewer.ui.screen
 
-import android.content.Context
 import android.os.Parcelable
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.collection.SieveCache
@@ -18,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -34,7 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import coil3.imageLoader
+import androidx.compose.ui.util.fastJoinToString
+import androidx.lifecycle.viewModelScope
 import com.hippo.ehviewer.EhApplication.Companion.imageCache
 import com.hippo.ehviewer.EhDB
 import com.hippo.ehviewer.R
@@ -50,6 +49,7 @@ import com.hippo.ehviewer.client.getImageKey
 import com.hippo.ehviewer.coil.justDownload
 import com.hippo.ehviewer.dao.DownloadInfo
 import com.hippo.ehviewer.download.DownloadManager
+import com.hippo.ehviewer.ktbuilder.executeIn
 import com.hippo.ehviewer.ktbuilder.imageRequest
 import com.hippo.ehviewer.spider.SpiderDen
 import com.hippo.ehviewer.ui.MainActivity
@@ -73,6 +73,8 @@ import eu.kanade.tachiyomi.util.lang.withIOContext
 import eu.kanade.tachiyomi.util.system.logcat
 import kotlinx.parcelize.Parcelize
 import moe.tarsin.coroutines.runSuspendCatching
+
+typealias VoteTag = suspend GalleryDetail.(String, Int) -> Unit
 
 val detailCache = SieveCache<Long, GalleryDetail>(25)
 
@@ -110,6 +112,16 @@ fun AnimatedVisibilityScope.GalleryDetailScreen(args: GalleryDetailScreenArgs, n
     var getDetailError by rememberSaveable { mutableStateOf("") }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+    (galleryInfo as? GalleryDetail)?.apply {
+        rememberInVM(this) {
+            if (Settings.preloadThumbAggressively) {
+                previewList.forEach {
+                    imageRequest(it) { justDownload() }.executeIn(viewModelScope)
+                }
+            }
+        }
+    }
+
     if (galleryInfo !is GalleryDetail && getDetailError.isBlank()) {
         LaunchedEffect(Unit) {
             val galleryDetail = detailCache[gid]
@@ -117,13 +129,6 @@ fun AnimatedVisibilityScope.GalleryDetailScreen(args: GalleryDetailScreenArgs, n
                     withIOContext { EhEngine.getGalleryDetail(galleryDetailUrl) }
                 }.onSuccess { galleryDetail ->
                     detailCache[galleryDetail.gid] = galleryDetail
-                    if (Settings.preloadThumbAggressively) {
-                        launchIO {
-                            galleryDetail.previewList.forEach {
-                                imageLoader.enqueue(imageRequest(it) { justDownload() })
-                            }
-                        }
-                    }
                 }.onFailure {
                     galleryInfo?.let { info -> EhDB.putHistoryInfo(info.findBaseInfo()) }
                     getDetailError = it.displayString()
@@ -132,6 +137,19 @@ fun AnimatedVisibilityScope.GalleryDetailScreen(args: GalleryDetailScreenArgs, n
                 EhDB.putHistoryInfo(it.galleryInfo)
                 galleryInfo = it
             }
+        }
+    }
+
+    val voteTag: VoteTag = { tag, vote ->
+        runSuspendCatching {
+            EhEngine.voteTag(apiUid, apiKey, gid, token, tag, vote)
+        }.onSuccess { result ->
+            val new = copy(tagGroups = result).apply { fillInfo() }
+            detailCache[gid] = new
+            galleryInfo = new
+            showTip(R.string.tag_vote_successfully)
+        }.onFailure { e ->
+            showTip(e.displayString())
         }
     }
 
@@ -181,8 +199,6 @@ fun AnimatedVisibilityScope.GalleryDetailScreen(args: GalleryDetailScreenArgs, n
                         expanded = dropdown,
                         onDismissRequest = { dropdown = false },
                     ) {
-                        val addTag = stringResource(R.string.action_add_tag)
-                        val addTagTip = stringResource(R.string.action_add_tag_tip)
                         DropdownMenuItem(
                             text = { Text(text = stringResource(id = R.string.action_add_tag)) },
                             onClick = {
@@ -192,11 +208,11 @@ fun AnimatedVisibilityScope.GalleryDetailScreen(args: GalleryDetailScreenArgs, n
                                     if (detail.apiUid < 0) {
                                         showSnackbar(signInFirst)
                                     } else {
-                                        val text = awaitInputText(
-                                            title = addTag,
-                                            hint = addTagTip,
-                                        )
-                                        detail.voteTag(text.trim(), 1)
+                                        val tags = awaitSelectTags()
+                                        if (tags.isNotEmpty()) {
+                                            val text = tags.fastJoinToString(",")
+                                            detail.voteTag(text, 1)
+                                        }
                                     }
                                 }
                             },
@@ -304,6 +320,7 @@ fun AnimatedVisibilityScope.GalleryDetailScreen(args: GalleryDetailScreenArgs, n
                 contentPadding = it,
                 getDetailError = getDetailError,
                 onRetry = { getDetailError = "" },
+                voteTag = voteTag,
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             )
         } else if (getDetailError.isNotBlank()) {
@@ -316,20 +333,5 @@ fun AnimatedVisibilityScope.GalleryDetailScreen(args: GalleryDetailScreenArgs, n
                 CircularProgressIndicator()
             }
         }
-    }
-}
-
-context(Context, SnackbarHostState)
-suspend fun GalleryDetail.voteTag(tag: String, vote: Int) {
-    runSuspendCatching {
-        EhEngine.voteTag(apiUid, apiKey, gid, token, tag, vote)
-    }.onSuccess { result ->
-        if (result != null) {
-            showSnackbar(result)
-        } else {
-            showSnackbar(getString(R.string.tag_vote_successfully))
-        }
-    }.onFailure {
-        showSnackbar(getString(R.string.vote_failed))
     }
 }
