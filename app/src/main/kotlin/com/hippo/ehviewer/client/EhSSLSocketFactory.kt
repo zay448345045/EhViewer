@@ -19,6 +19,7 @@ package com.hippo.ehviewer.client
 
 import android.util.Log
 import com.hippo.ehviewer.Settings
+import com.hippo.ehviewer.Settings.enableECH
 import java.net.InetAddress
 import java.net.Socket
 import java.security.KeyStore
@@ -30,6 +31,9 @@ import javax.net.ssl.X509TrustManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.conscrypt.Conscrypt
+import org.conscrypt.Conscrypt.getEchConfigList
+import org.conscrypt.Conscrypt.setCheckDnsForEch
+import org.conscrypt.Conscrypt.setEchConfigList
 
 private const val EXCEPTIONAL_DOMAIN = "hath.network"
 private val sslSocketFactory: SSLSocketFactory = SSLContext.getInstance("TLS", Conscrypt.newProvider()).apply {
@@ -46,17 +50,16 @@ object EhSSLSocketFactory : SSLSocketFactory() {
     override fun createSocket(address: InetAddress, port: Int, localAddress: InetAddress, localPort: Int): Socket = sslSocketFactory.createSocket(address, port, localAddress, localPort)
 
     private fun createConfiguredSocket(socket: SSLSocket, host: String): SSLSocket {
-        if (Settings.enableECH) {
-            Conscrypt.setCheckDnsForEch(socket, true)
-            var cachedEchConfig = getCachedEchConfig()
-            if (host in echEnabledDomains && Conscrypt.getEchConfigList(socket) == null) {
-                if (cachedEchConfig == null) {
+        setCheckDnsForEch(socket, false)
+        if (enableECH && host in echEnabledDomains) {
+            getEchConfigList(socket) ?: run {
+                loadCachedEchConfig() ?: run {
+                    Log.d("ECH", "No cache, fetching new ECH Config")
                     runBlocking {
-                        Log.d("ECH", "No cache, fetching new ECH Config")
                         fetchAndCacheEchConfig()
                     }
                 }
-                Conscrypt.setEchConfigList(socket, cachedEchConfig)
+                setEchConfigList(socket, cachedEchConfig)
             }
             logEchConfigList(socket, host)
         }

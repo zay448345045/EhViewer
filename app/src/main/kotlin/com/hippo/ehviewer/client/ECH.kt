@@ -15,10 +15,10 @@ private const val OUTER_SNI = "cloudflare-ech.com"
 private const val DEFAULT_TTL = 300L
 private val dnsjavaQuery = Lookup(OUTER_SNI, Type.HTTPS)
 private var ttl: Long? = null
-private var cachedEchConfig: ByteArray? = null
 private var expirationTime: Long = 0
+var cachedEchConfig: ByteArray? = null
 
-fun getCachedEchConfig(): ByteArray? = cachedEchConfig?.takeIf { System.currentTimeMillis() < expirationTime }?.also {
+fun loadCachedEchConfig(): ByteArray? = cachedEchConfig?.takeIf { System.currentTimeMillis() < expirationTime }?.also {
     Log.d("ECH", "Cache hit, TTL ${expirationTime - System.currentTimeMillis()}ms left")
 }
 
