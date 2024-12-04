@@ -1,9 +1,9 @@
 package com.hippo.ehviewer.client
 
-import android.os.Build
 import com.hippo.ehviewer.Settings
 import com.hippo.ehviewer.builtInHosts
 import com.hippo.ehviewer.ui.settings.EhDoH
+import com.hippo.ehviewer.util.isAtLeastQ
 import java.net.InetAddress
 import okhttp3.AsyncDns
 import okhttp3.Dns
@@ -88,7 +88,7 @@ fun HostsMap.hosts(vararg hosts: String, builder: HostMapBuilder.() -> Unit) = a
 }
 
 @OptIn(ExperimentalOkHttpApi::class)
-val systemDns = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) AsyncDns.toDns(AndroidAsyncDns.IPv4, AndroidAsyncDns.IPv6) else Dns.SYSTEM
+val systemDns = if (isAtLeastQ) AsyncDns.toDns(AndroidAsyncDns.IPv4, AndroidAsyncDns.IPv6) else Dns.SYSTEM
 
 object EhDns : Dns {
     override fun lookup(hostname: String): List<InetAddress> = when {
