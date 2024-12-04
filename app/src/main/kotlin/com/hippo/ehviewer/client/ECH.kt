@@ -12,8 +12,9 @@ import org.xbill.DNS.Lookup
 import org.xbill.DNS.Type
 
 private const val OUTER_SNI = "cloudflare-ech.com"
-private const val CACHE_EXPIRATION_TIME = 5 * 60 * 1000
+private const val DEFAULT_TTL = 300L
 private val dnsjavaQuery = Lookup(OUTER_SNI, Type.HTTPS)
+private var ttl: Long? = null
 private var cachedEchConfig: ByteArray? = null
 private var expirationTime: Long = 0
 
@@ -32,17 +33,21 @@ suspend fun fetchAndCacheEchConfig() {
     runCatching {
         val result = runCatching {
             censoredDoh?.lookUp(OUTER_SNI, "HTTPS")?.data?.firstOrNull()?.takeIf { it.isNotEmpty() }
+            // TODO: ttl
+            // https://github.com/relaycorp/doh-jvm/issues/8
         }.getOrElse {
             null
         } ?: run {
-            dnsjavaQuery.run().takeIf { dnsjavaQuery.result == Lookup.SUCCESSFUL }?.get(0)?.rdataToString()
+            var record = dnsjavaQuery.run().takeIf { dnsjavaQuery.result == Lookup.SUCCESSFUL }?.get(0)
+            ttl = record?.ttl
+            record?.rdataToString()
         } ?: return@runCatching
-        Log.d("ECH", "Response for $OUTER_SNI is $result")
+        Log.d("ECH", "Response for $OUTER_SNI is $result, TTL ${ttl ?: DEFAULT_TTL}")
         val echConfig = Regex("ech=([A-Za-z0-9+/=]+)").find(result.toString())
             ?.groupValues?.getOrNull(1)?.let { Base64.getDecoder().decode(it) }
             ?: return@runCatching
         cachedEchConfig = echConfig
-        expirationTime = System.currentTimeMillis() + CACHE_EXPIRATION_TIME
+        expirationTime = System.currentTimeMillis() + (ttl ?: DEFAULT_TTL).times(1000)
     }.onFailure {
         Log.w("ECH", "Failed to fetch ECH config", it)
     }
