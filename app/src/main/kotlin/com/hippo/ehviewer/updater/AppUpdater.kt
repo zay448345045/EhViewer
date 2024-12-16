@@ -7,18 +7,20 @@ import com.hippo.ehviewer.client.executeAndParseAs
 import com.hippo.ehviewer.client.executeSafely
 import com.hippo.ehviewer.util.copyTo
 import com.hippo.ehviewer.util.ensureSuccess
+import com.hippo.files.write
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
-import java.io.File
 import java.util.zip.ZipInputStream
 import kotlin.time.Duration.Companion.days
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.io.asSource
 import moe.tarsin.coroutines.runSuspendCatching
+import okio.Path
 import tachiyomi.data.release.GithubArtifacts
 import tachiyomi.data.release.GithubCommitComparison
 import tachiyomi.data.release.GithubRelease
@@ -68,7 +70,7 @@ object AppUpdater {
         return null
     }
 
-    suspend fun downloadUpdate(url: String, file: File) = ghStatement(url) {
+    suspend fun downloadUpdate(url: String, path: Path) = ghStatement(url) {
         timeout {
             requestTimeoutMillis = 60_000
         }
@@ -78,13 +80,11 @@ object AppUpdater {
             response.bodyAsChannel().toInputStream().use { stream ->
                 ZipInputStream(stream).use { zip ->
                     zip.nextEntry
-                    file.outputStream().use {
-                        zip.copyTo(it)
-                    }
+                    path.write { transferFrom(zip.asSource()) }
                 }
             }
         } else {
-            response.bodyAsChannel().copyTo(file)
+            response.bodyAsChannel().copyTo(path)
         }
     }
 }

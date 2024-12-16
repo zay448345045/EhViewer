@@ -1,8 +1,8 @@
 [versions]
 aboutlibraries = "11.2.3"
-accompanist = "0.36.0"
+accompanist = "0.37.0"
 agp = "8.8.0-alpha09"
-androidx-activity = "1.10.0-beta01"
+androidx-activity = "1.10.0-rc01"
 androidx-appcompat = "1.7.0"
 androidx-biometric = "1.4.0-alpha02"
 androidx-browser = "1.8.0"
@@ -11,13 +11,13 @@ androidx-core = "1.15.0"
 androidx-core-splashscreen = "1.2.0-alpha02"
 androidx-datastore = "1.1.1"
 androidx-graphics-path = "1.0.1"
-androidx-lifecycle = "2.9.0-alpha07"
-androidx-paging = "3.3.4"
-androidx-room = "2.7.0-alpha11"
+androidx-lifecycle = "2.9.0-alpha08"
+androidx-paging = "3.3.5"
+androidx-room = "2.7.0-alpha12"
 androidx-work = "2.10.0"
-arrow = "2.0.0-rc.1"
+arrow = "2.0.0"
 coil = "3.0.4"
-compose-bom = "2024.11.00"
+compose-bom = "2024.12.01"
 compose-destinations = "2.1.0-beta14"
 dnsjava = "3.6.2"
 doh = "1.0.66"
@@ -26,16 +26,17 @@ kotlinx-coroutines = "1.9.0"
 kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.7.3"
 ksp = "2.1.0-1.0.29"
-ktor = "3.0.1"
+ktor = "3.0.2"
+lyricist = "1.7.0"
 okhttp = "5.0.0-alpha.14"
 okio = "3.9.1"
 runner = "1.6.2"
 splitties = "3.0.0"
 telephoto = "0.14.0"
-xmlutil = "0.90.3"
+xmlutil = "0.90.4-SNAPSHOT"
 junit = "1.2.1"
 uiautomator = "2.4.0-alpha01"
-benchmark = "1.4.0-alpha05"
+benchmark = "1.4.0-alpha06"
 profileinstaller = "1.4.1"
 testng = "6.9.6"
 
@@ -114,6 +115,8 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 
 logcat = "com.squareup.logcat:logcat:0.1"
 
+lyricist = { module = "cafe.adriel.lyricist:lyricist", version.ref = "lyricist" }
+
 material-kolor = "com.materialkolor:material-kolor:2.0.0"
 
 okhttp-android = { module = "com.squareup.okhttp3:okhttp-android" }
@@ -121,13 +124,14 @@ okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp
 okhttp-dnsoverhttps = { module = "com.squareup.okhttp3:okhttp-dnsoverhttps" }
 okio-jvm = { module = "com.squareup.okio:okio-jvm", version.ref = "okio" }
 
-reorderable = "sh.calvin.reorderable:reorderable:2.4.0"
+reorderable = "sh.calvin.reorderable:reorderable:2.4.2"
 
 serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor", version.ref = "kotlinx-serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
-serialization-json-okio = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-okio", version.ref = "kotlinx-serialization" }
+serialization-json-io = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-io", version.ref = "kotlinx-serialization" }
 
 serialization-xml = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil" }
+serialization-xml-io = { module = "io.github.pdvrieze.xmlutil:serialization-io", version.ref = "xmlutil" }
 
 splitties-appctx = { module = "com.louiscad.splitties:splitties-appctx", version.ref = "splitties" }
 splitties-arch-room = { module = "com.louiscad.splitties:splitties-arch-room", version.ref = "splitties" }
@@ -144,7 +148,7 @@ coil = ["coil-compose", "coil-gif", "coil-network"]
 compose = ["compose-foundation", "compose-material-icons-extended", "compose-material3", "compose-material3-adaptive", "compose-ui-util"]
 cronet = ["cronet-api", "cronet-gms", "cronet-okhttp"]
 dns = ["doh", "dnsjava"]
-kotlinx-serialization = ["serialization-cbor", "serialization-json", "serialization-json-okio", "serialization-xml"]
+kotlinx-serialization = ["serialization-cbor", "serialization-json", "serialization-json-io", "serialization-xml", "serialization-xml-io"]
 okhttp = ["okhttp-android", "okhttp-dnsoverhttps"]
 splitties = ["splitties-appctx", "splitties-arch-room", "splitties-preferences", "splitties-systemservices"]
 

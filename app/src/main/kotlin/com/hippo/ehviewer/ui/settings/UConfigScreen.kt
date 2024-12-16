@@ -5,6 +5,7 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -23,15 +24,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import arrow.atomic.Atomic
+import arrow.atomic.value
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import com.hippo.ehviewer.EhApplication.Companion.nonH2OkHttpClient
-import com.hippo.ehviewer.R
 import com.hippo.ehviewer.client.EhCookieStore
 import com.hippo.ehviewer.client.EhUrl
+import com.hippo.ehviewer.ui.composing
 import com.hippo.ehviewer.util.setDefaultSettings
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -88,9 +89,9 @@ val cookieHeader = EhCookieStore.getCookieHeader(url)
 @SuppressLint("JavascriptInterface")
 @Destination<RootGraph>
 @Composable
-fun UConfigScreen(navigator: DestinationsNavigator) {
+fun AnimatedVisibilityScope.UConfigScreen(navigator: DestinationsNavigator) = composing(navigator) {
     val url = EhUrl.uConfigUrl
-    val webview = remember { Atomic<WebView?>(null) }
+    var webview by remember { Atomic<WebView?>(null)::value }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     class OkHttpWebViewClient : AccompanistWebViewClient() {
@@ -184,7 +185,7 @@ fun UConfigScreen(navigator: DestinationsNavigator) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(id = R.string.u_config)) },
+                title = { Text(text = uConfig) },
                 navigationIcon = {
                     IconButton(onClick = { navigator.popBackStack() }) {
                         Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack, contentDescription = null)
@@ -193,7 +194,7 @@ fun UConfigScreen(navigator: DestinationsNavigator) {
                 actions = {
                     IconButton(
                         onClick = {
-                            webview.get()?.loadUrl(APPLY_JS)
+                            webview?.loadUrl(APPLY_JS)
                             navigator.popBackStack()
                         },
                     ) {
@@ -216,10 +217,9 @@ fun UConfigScreen(navigator: DestinationsNavigator) {
                     "Android",
                 )
             },
-            factory = { WebView(it).apply { webview.set(this) } },
+            factory = { WebView(it).apply { webview = this } },
             client = okHttpWebViewClient,
         )
-        val applyTip = stringResource(id = R.string.apply_tip)
         LaunchedEffect(Unit) { snackbarHostState.showSnackbar(applyTip) }
         DisposableEffect(Unit) {
             onDispose {
