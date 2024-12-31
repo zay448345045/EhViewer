@@ -2,6 +2,7 @@ package com.hippo.ehviewer.ktor
 
 import io.ktor.client.engine.HttpClientEngineBase
 import io.ktor.client.engine.callContext
+import io.ktor.client.plugins.ConnectTimeoutException
 import io.ktor.client.plugins.HttpTimeoutCapability
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
@@ -22,12 +23,14 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import org.chromium.net.CronetException
 import org.chromium.net.UploadDataProvider
 import org.chromium.net.UploadDataSink
@@ -45,7 +48,12 @@ class CronetEngine(override val config: CronetConfig) : HttpClientEngineBase("Cr
     private val client = config.client ?: error("Cronet client is not configured")
 
     @InternalAPI
-    override suspend fun execute(data: HttpRequestData) = executeHttpRequest(callContext(), data)
+    override suspend fun execute(data: HttpRequestData) = data.getCapabilityOrNull(HttpTimeoutCapability)!!.let { cfg ->
+        val connTimeout = cfg.connectTimeoutMillis!!
+        withTimeoutOrNull(connTimeout.milliseconds) {
+            executeHttpRequest(callContext(), data)
+        } ?: throw ConnectTimeoutException(data)
+    }
 
     private suspend fun executeHttpRequest(
         callContext: CoroutineContext,
@@ -111,6 +119,7 @@ class CronetEngine(override val config: CronetConfig) : HttpClientEngineBase("Cr
             data.body.toUploadDataProvider()?.let { setUploadDataProvider(it, executor) }
         }.build().apply {
             start()
+            continuation.invokeOnCancellation { cancel() }
             callContext.job.invokeOnCompletion { cancel() }
         }
     }

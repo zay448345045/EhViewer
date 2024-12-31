@@ -46,7 +46,7 @@ ExternalProject_Add(
         nettle
         PREFIX nettle
         GIT_REPOSITORY https://gitlab.com/gnutls/nettle.git
-        GIT_TAG nettle_3.10_release_20240616
+        GIT_TAG nettle_3.10.1_release_20241230
         GIT_SHALLOW 1
         GIT_CONFIG core.autocrlf=input
         CONFIGURE_COMMAND bash ${CURRENT_DIR}/configure_nettle.sh ${NDK_VERSION} ${CMAKE_C_COMPILER_TARGET}
@@ -107,7 +107,7 @@ include_directories(${libarchive_SOURCE_DIR}/libarchive)
 FetchContent_Declare(
         Corrosion
         GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
-        GIT_TAG v0.5
+        GIT_TAG v0.5.1
         GIT_SHALLOW 1
 )
 

@@ -28,14 +28,15 @@ import java.net.UnknownHostException
 import javax.net.ssl.SSLException
 import splitties.init.appCtx
 
-fun Throwable.displayString(): String = when (this) {
-    is HttpRequestTimeoutException,
-    is ConnectTimeoutException, is SocketTimeoutException,
-    -> appCtx.getString(R.string.error_timeout)
+class LowSpeedException(
+    url: String,
+    speed: Long,
+) : IOException("Response speed too slow [url=$url, speed=${FileUtils.humanReadableByteCount(speed)}]")
 
-    else -> {
-        logcat(this)
-        message ?: appCtx.getString(R.string.error_unknown)
+fun Throwable.displayString(): String = logcat(this).let {
+    when (this) {
+        is HttpRequestTimeoutException, is ConnectTimeoutException, is SocketTimeoutException, is LowSpeedException -> appCtx.getString(R.string.error_timeout)
+        else -> message ?: appCtx.getString(R.string.error_unknown)
     }
 }
 
