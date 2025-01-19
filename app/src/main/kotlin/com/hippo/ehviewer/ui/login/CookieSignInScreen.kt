@@ -1,5 +1,6 @@
 package com.hippo.ehviewer.ui.login
 
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,13 +33,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
@@ -55,7 +55,7 @@ import com.hippo.ehviewer.client.EhCookieStore
 import com.hippo.ehviewer.client.EhEngine
 import com.hippo.ehviewer.client.EhUrl
 import com.hippo.ehviewer.client.EhUtils
-import com.hippo.ehviewer.ui.tools.LocalDialogState
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.ui.tools.LocalWindowSizeClass
 import com.hippo.ehviewer.util.ExceptionUtils
 import com.ramcosta.composedestinations.annotation.Destination
@@ -69,12 +69,11 @@ import kotlinx.coroutines.launch
 
 @Destination<RootGraph>
 @Composable
-fun CookieSignInScene(navigator: DestinationsNavigator) {
+fun AnimatedVisibilityScope.CookieSignInScene(navigator: DestinationsNavigator) = Screen(navigator) {
     val windowSizeClass = LocalWindowSizeClass.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
     var isProgressIndicatorVisible by rememberSaveable { mutableStateOf(false) }
 
     var ipbMemberId by rememberSaveable { mutableStateOf("") }
@@ -85,8 +84,6 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
     var ipbPassHashErrorState by rememberSaveable { mutableStateOf(false) }
 
     var signInJob by remember { mutableStateOf<Job?>(null) }
-
-    val dialogState = LocalDialogState.current
 
     val noCookies = stringResource(R.string.from_clipboard_error)
 
@@ -115,7 +112,7 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
         }
         focusManager.clearFocus()
         isProgressIndicatorVisible = true
-        signInJob = coroutineScope.launchIO {
+        signInJob = launchIO {
             runCatching {
                 storeCookie(ipbMemberId, ipbPassHash, igneous)
                 EhEngine.getProfile()
@@ -123,7 +120,7 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
                 withNonCancellableContext { postLogin() }
             }.onFailure {
                 EhCookieStore.removeAllCookies()
-                dialogState.awaitConfirmationOrCancel(
+                awaitConfirmationOrCancel(
                     confirmText = R.string.get_it,
                     showCancelButton = false,
                     title = R.string.sign_in_failed,
@@ -143,45 +140,43 @@ fun CookieSignInScene(navigator: DestinationsNavigator) {
 
     fun fillCookiesFromClipboard() {
         focusManager.clearFocus()
-        val text = clipboardManager.getText()
-        if (text == null) {
-            coroutineScope.launch { snackbarHostState.showSnackbar(noCookies) }
-            return
-        }
-        runCatching {
-            val kvs: Array<String> = if (text.contains(";")) {
-                text.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            } else if (text.contains("\n")) {
-                text.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            } else {
-                coroutineScope.launch { snackbarHostState.showSnackbar(noCookies) }
-                return
+        launch {
+            val text = clipboard.getClipEntry()?.clipData?.getItemAt(0)?.getText()
+            if (text == null) {
+                snackbarHostState.showSnackbar(noCookies)
+                return@launch
             }
-            if (kvs.size < 2) {
-                coroutineScope.launch { snackbarHostState.showSnackbar(noCookies) }
-                return
+            runCatching {
+                val kvs: Array<String> = when {
+                    text.contains(";") -> text.split(";").dropLastWhile { it.isEmpty() }.toTypedArray()
+                    text.contains("\n") -> text.split("\n").dropLastWhile { it.isEmpty() }.toTypedArray()
+                    else -> {
+                        snackbarHostState.showSnackbar(noCookies)
+                        return@launch
+                    }
+                }
+                if (kvs.size < 2) {
+                    snackbarHostState.showSnackbar(noCookies)
+                    return@launch
+                }
+                for (s in kvs) {
+                    val kv: Array<String> = when {
+                        s.contains("=") -> s.split("=").dropLastWhile { it.isEmpty() }.toTypedArray()
+                        s.contains(":") -> s.split(":").dropLastWhile { it.isEmpty() }.toTypedArray()
+                        else -> continue
+                    }
+                    if (kv.size != 2) continue
+                    when (kv[0].trim().lowercase(Locale.getDefault())) {
+                        "ipb_member_id" -> ipbMemberId = kv[1].trim()
+                        "ipb_pass_hash" -> ipbPassHash = kv[1].trim()
+                        "igneous" -> igneous = kv[1].trim()
+                    }
+                }
+                login()
+            }.onFailure {
+                it.printStackTrace()
+                snackbarHostState.showSnackbar(noCookies)
             }
-            for (s in kvs) {
-                val kv: Array<String> = if (s.contains("=")) {
-                    s.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                } else if (s.contains(":")) {
-                    s.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                } else {
-                    continue
-                }
-                if (kv.size != 2) {
-                    continue
-                }
-                when (kv[0].trim { it <= ' ' }.lowercase(Locale.getDefault())) {
-                    "ipb_member_id" -> ipbMemberId = kv[1].trim { it <= ' ' }
-                    "ipb_pass_hash" -> ipbPassHash = kv[1].trim { it <= ' ' }
-                    "igneous" -> igneous = kv[1].trim { it <= ' ' }
-                }
-            }
-            login()
-        }.onFailure {
-            it.printStackTrace()
-            coroutineScope.launch { snackbarHostState.showSnackbar(noCookies) }
         }
     }
 

@@ -32,7 +32,7 @@ import com.google.accompanist.web.rememberWebViewState
 import com.hippo.ehviewer.EhApplication.Companion.nonH2OkHttpClient
 import com.hippo.ehviewer.client.EhCookieStore
 import com.hippo.ehviewer.client.EhUrl
-import com.hippo.ehviewer.ui.composing
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.util.setDefaultSettings
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -89,7 +89,7 @@ val cookieHeader = EhCookieStore.getCookieHeader(url)
 @SuppressLint("JavascriptInterface")
 @Destination<RootGraph>
 @Composable
-fun AnimatedVisibilityScope.UConfigScreen(navigator: DestinationsNavigator) = composing(navigator) {
+fun AnimatedVisibilityScope.UConfigScreen(navigator: DestinationsNavigator) = Screen(navigator) {
     val url = EhUrl.uConfigUrl
     var webview by remember { Atomic<WebView?>(null)::value }
     val coroutineScope = rememberCoroutineScope()

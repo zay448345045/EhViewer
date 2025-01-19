@@ -19,7 +19,7 @@ import com.hippo.ehviewer.EhApplication.Companion.nonH2OkHttpClient
 import com.hippo.ehviewer.client.EhCookieStore
 import com.hippo.ehviewer.client.EhUrl
 import com.hippo.ehviewer.client.EhUtils
-import com.hippo.ehviewer.ui.composing
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.util.bgWork
 import com.hippo.ehviewer.util.setDefaultSettings
 import com.ramcosta.composedestinations.annotation.Destination
@@ -70,7 +70,7 @@ private val jsCode = """
 @SuppressLint("JavascriptInterface")
 @Destination<RootGraph>
 @Composable
-fun AnimatedVisibilityScope.WebViewSignInScreen(navigator: DestinationsNavigator) = composing(navigator) {
+fun AnimatedVisibilityScope.WebViewSignInScreen(navigator: DestinationsNavigator) = Screen(navigator) {
     val state = rememberWebViewState(url = EhUrl.URL_SIGN_IN)
     class OkHttpWebViewClient(
         private val jsCode: String,

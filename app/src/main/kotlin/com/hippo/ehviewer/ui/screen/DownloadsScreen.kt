@@ -96,7 +96,7 @@ import com.hippo.ehviewer.icons.EhIcons
 import com.hippo.ehviewer.icons.big.Download
 import com.hippo.ehviewer.ui.DrawerHandle
 import com.hippo.ehviewer.ui.LocalSideSheetState
-import com.hippo.ehviewer.ui.composing
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.ui.confirmRemoveDownloadRange
 import com.hippo.ehviewer.ui.main.DownloadCard
 import com.hippo.ehviewer.ui.main.FAB_ANIMATE_TIME
@@ -110,7 +110,7 @@ import com.hippo.ehviewer.ui.tools.EmptyWindowInsets
 import com.hippo.ehviewer.ui.tools.FastScrollLazyColumn
 import com.hippo.ehviewer.ui.tools.FastScrollLazyVerticalStaggeredGrid
 import com.hippo.ehviewer.ui.tools.HapticFeedbackType
-import com.hippo.ehviewer.ui.tools.delegateSnapshotUpdate
+import com.hippo.ehviewer.ui.tools.asyncState
 import com.hippo.ehviewer.ui.tools.rememberHapticFeedback
 import com.hippo.ehviewer.ui.tools.rememberInVM
 import com.hippo.ehviewer.ui.tools.thenIf
@@ -132,7 +132,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Destination<RootGraph>
 @Composable
-fun AnimatedVisibilityScope.DownloadsScreen(navigator: DestinationsNavigator) = composing(navigator) {
+fun AnimatedVisibilityScope.DownloadsScreen(navigator: DestinationsNavigator) = Screen(navigator) {
     var gridView by Settings.gridView.asMutableState()
     var sortMode by Settings.downloadSortMode.asMutableState()
     val filterMode by Settings.downloadFilterMode.collectAsState { DownloadsFilterMode.from(it) }
@@ -633,15 +633,14 @@ fun AnimatedVisibilityScope.DownloadsScreen(navigator: DestinationsNavigator) = 
         }
     }
 
-    val hideFab by delegateSnapshotUpdate {
-        record { fabHidden }
-        transform {
-            // Bug: IDE failed to inference 'hide's type
-            onEachLatest { hide: Boolean ->
+    val hideFab by asyncState(
+        produce = { fabHidden },
+        transform = {
+            onEachLatest { hide ->
                 if (!hide) delay(FAB_ANIMATE_TIME.toLong())
             }
-        }
-    }
+        },
+    )
 
     FabLayout(
         hidden = hideFab && !selectMode,

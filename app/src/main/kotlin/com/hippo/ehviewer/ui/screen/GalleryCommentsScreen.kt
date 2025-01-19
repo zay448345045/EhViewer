@@ -3,10 +3,12 @@ package com.hippo.ehviewer.ui.screen
 import android.graphics.Typeface
 import android.text.Html
 import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.URLSpan
+import androidx.annotation.ColorInt
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
@@ -89,7 +91,7 @@ import com.hippo.ehviewer.client.data.ListUrlBuilder
 import com.hippo.ehviewer.collectAsState
 import com.hippo.ehviewer.dao.Filter
 import com.hippo.ehviewer.dao.FilterMode
-import com.hippo.ehviewer.ui.composing
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.ui.jumpToReaderByPage
 import com.hippo.ehviewer.ui.main.GalleryCommentCard
 import com.hippo.ehviewer.ui.openBrowser
@@ -116,6 +118,16 @@ import moe.tarsin.coroutines.runSuspendCatching
 
 private val URL_PATTERN = Regex("(http|https)://[a-z0-9A-Z%-]+(\\.[a-z0-9A-Z%-]+)+(:\\d{1,5})?(/[a-zA-Z0-9-_~:#@!&',;=%/*.?+$\\[\\]()]+)?/?")
 
+private inline fun SpannableStringBuilder.withSpans(
+    @ColorInt color: Int,
+    builderAction: SpannableStringBuilder.() -> Unit,
+) = inSpans(
+    RelativeSizeSpan(0.8f),
+    StyleSpan(Typeface.BOLD),
+    ForegroundColorSpan(color),
+    builderAction = builderAction,
+)
+
 @Composable
 fun processComment(
     comment: GalleryComment,
@@ -131,22 +143,17 @@ fun processComment(
             }
         }
         val color = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
-        val spans = arrayOf(
-            RelativeSizeSpan(0.8f),
-            StyleSpan(Typeface.BOLD),
-            ForegroundColorSpan(color),
-        )
         if (comment.id != 0L && comment.score != 0) {
             val score = comment.score
             val scoreString = if (score > 0) "+$score" else score.toString()
             append("  ")
-            inSpans(*spans) {
+            withSpans(color) {
                 append(scoreString)
             }
         }
         if (comment.lastEdited != 0L) {
             append("\n\n")
-            inSpans(*spans) {
+            withSpans(color) {
                 append(
                     stringResource(
                         R.string.last_edited,
@@ -162,7 +169,7 @@ private val MinimumContentPaddingEditText = 88.dp
 
 @Destination<RootGraph>
 @Composable
-fun AnimatedVisibilityScope.GalleryCommentsScreen(gid: Long, navigator: DestinationsNavigator) = composing(navigator) {
+fun AnimatedVisibilityScope.GalleryCommentsScreen(gid: Long, navigator: DestinationsNavigator) = Screen(navigator) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     var commenting by rememberSaveable { mutableStateOf(false) }
     val animationProgress by animateFloatMergePredictiveBackAsState(enable = commenting) { commenting = false }

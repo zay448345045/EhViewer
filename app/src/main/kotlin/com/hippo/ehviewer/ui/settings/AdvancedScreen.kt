@@ -9,6 +9,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,7 +52,7 @@ import com.hippo.ehviewer.client.builtInDoHUrls
 import com.hippo.ehviewer.client.data.FavListUrlBuilder
 import com.hippo.ehviewer.client.systemDns
 import com.hippo.ehviewer.collectAsState
-import com.hippo.ehviewer.ui.tools.LocalDialogState
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.ui.tools.observed
 import com.hippo.ehviewer.ui.tools.rememberedAccessor
 import com.hippo.ehviewer.util.AdsPlaceholderFile
@@ -88,7 +89,7 @@ import tech.relaycorp.doh.DoHClient
 
 @Destination<RootGraph>
 @Composable
-fun AdvancedScreen(navigator: DestinationsNavigator) {
+fun AnimatedVisibilityScope.AdvancedScreen(navigator: DestinationsNavigator) = Screen(navigator) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -96,7 +97,6 @@ fun AdvancedScreen(navigator: DestinationsNavigator) {
     val cloudflareIPhint = stringResource(id = R.string.settings_advanced_cloudflare_ip_hint)
     val cloudflareIPtitle = stringResource(id = R.string.settings_advanced_cloudflare_ip)
     fun launchSnackBar(content: String) = coroutineScope.launch { snackbarHostState.showSnackbar(content) }
-    val dialogState = LocalDialogState.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -206,7 +206,7 @@ fun AdvancedScreen(navigator: DestinationsNavigator) {
                 summary = if (enableCronet) "Cronet" else "OkHttp",
             ) {
                 coroutineScope.launch {
-                    dialogState.awaitConfirmationOrCancel(
+                    awaitConfirmationOrCancel(
                         title = R.string.settings_advanced_http_engine,
                         showCancelButton = false,
                     ) {
@@ -253,7 +253,7 @@ fun AdvancedScreen(navigator: DestinationsNavigator) {
                     summary = cloudflareIp,
                 ) {
                     coroutineScope.launch {
-                        val newCloudflareIP = dialogState.awaitInputText(
+                        val newCloudflareIP = awaitInputText(
                             initial = Settings.cloudflareIp.toString(),
                             title = cloudflareIPtitle,
                             hint = cloudflareIPhint,
@@ -268,7 +268,7 @@ fun AdvancedScreen(navigator: DestinationsNavigator) {
             AnimatedVisibility(visible = enableDf) {
                 Preference(title = stringResource(id = R.string.settings_advanced_dns_over_http_title)) {
                     coroutineScope.launch {
-                        val newDoHUrl = dialogState.awaitInputText(
+                        val newDoHUrl = awaitInputText(
                             initial = Settings.dohUrl?.toString() ?: "",
                             title = context.getString(R.string.settings_advanced_dns_over_http_title),
                             hint = context.getString(R.string.settings_advanced_dns_over_http_hint),

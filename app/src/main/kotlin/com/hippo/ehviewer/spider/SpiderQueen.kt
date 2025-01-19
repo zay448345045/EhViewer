@@ -397,9 +397,8 @@ class SpiderQueen private constructor(val galleryInfo: GalleryInfo) : CoroutineS
     private fun isStateDone(state: Int): Boolean = state == STATE_FINISHED || state == STATE_FAILED
 
     fun updatePageState(index: Int, @State state: Int, error: String? = null) {
-        var oldState: Int
         synchronized<Unit>(mPageStateLock) {
-            oldState = pageStates[index]
+            val oldState = pageStates[index]
             pageStates[index] = state
             if (!isStateDone(oldState) && isStateDone(state)) {
                 mDownloadedPages.incrementAndGet()
@@ -576,7 +575,7 @@ class SpiderQueen private constructor(val galleryInfo: GalleryInfo) : CoroutineS
             var forceHtml = false
             val original = Settings.downloadOriginImage || orgImg
             runSuspendCatching {
-                repeat(2) { retries ->
+                repeat(3) { retries ->
                     var imageUrl: String? = null
                     var localShowKey: String?
 
@@ -635,26 +634,24 @@ class SpiderQueen private constructor(val galleryInfo: GalleryInfo) : CoroutineS
                     }
                     checkNotNull(targetImageUrl)
 
-                    repeat(2) { times ->
-                        runCatching {
-                            logcat(WORKER_DEBUG_TAG) { "Start download image $index attempt #$times" }
-                            spiderDen.makeHttpCallAndSaveImage(
-                                index,
-                                targetImageUrl,
-                                referer,
-                                this@SpiderQueen::notifyPageDownload.partially1(index),
-                            )
-                            logcat(WORKER_DEBUG_TAG) { "Download image $index succeed" }
-                            updatePageState(index, STATE_FINISHED)
-                            return
-                        }.onFailure {
-                            spiderDen.removeIntermediateFiles(index)
-                            logcat(WORKER_DEBUG_TAG) { "Download image $index attempt #$times failed" }
-                            when (it) {
-                                is CancellationException, is FileNotFoundException -> throw it
-                            }
-                            error = it.displayString()
+                    runCatching {
+                        logcat(WORKER_DEBUG_TAG) { "Start download image $index" }
+                        spiderDen.makeHttpCallAndSaveImage(
+                            index,
+                            targetImageUrl,
+                            referer,
+                            this@SpiderQueen::notifyPageDownload.partially1(index),
+                        )
+                        logcat(WORKER_DEBUG_TAG) { "Download image $index succeed" }
+                        updatePageState(index, STATE_FINISHED)
+                        return
+                    }.onFailure {
+                        spiderDen.removeIntermediateFiles(index)
+                        logcat(WORKER_DEBUG_TAG) { "Download image $index failed" }
+                        when (it) {
+                            is CancellationException, is FileNotFoundException -> throw it
                         }
+                        error = it.displayString()
                     }
                 }
             }.onFailure {

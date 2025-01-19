@@ -37,7 +37,6 @@ import com.hippo.ehviewer.download.downloadLocation
 import com.hippo.ehviewer.download.tempDownloadDir
 import com.hippo.ehviewer.image.PathSource
 import com.hippo.ehviewer.jni.archiveFdBatch
-import com.hippo.ehviewer.ui.tools.timeoutBySpeed
 import com.hippo.ehviewer.util.FileUtils
 import com.hippo.ehviewer.util.copyTo
 import com.hippo.ehviewer.util.sendTo
@@ -166,8 +165,9 @@ class SpiderDen(val info: GalleryInfo) {
         referer: String?,
         notifyProgress: (Long, Long, Int) -> Unit,
     ) = timeoutBySpeed(
+        url,
         { ehRequest(url, referer, builder = it) },
-        { a, b, c -> notifyProgress(a, b, c) },
+        notifyProgress,
         { resp -> check(saveFromHttpResponse(index, resp)) },
     )
 

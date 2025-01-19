@@ -19,12 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.fork.SwipeToDismissBox
 import androidx.compose.material3.fork.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -49,7 +51,7 @@ import com.hippo.ehviewer.collectAsState
 import com.hippo.ehviewer.icons.EhIcons
 import com.hippo.ehviewer.icons.big.History
 import com.hippo.ehviewer.ui.DrawerHandle
-import com.hippo.ehviewer.ui.composing
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.ui.doGalleryInfoAction
 import com.hippo.ehviewer.ui.main.GalleryInfoListItem
 import com.hippo.ehviewer.ui.main.plus
@@ -68,7 +70,7 @@ import kotlinx.coroutines.launch
 
 @Destination<RootGraph>
 @Composable
-fun AnimatedVisibilityScope.HistoryScreen(navigator: DestinationsNavigator) = composing(navigator) {
+fun AnimatedVisibilityScope.HistoryScreen(navigator: DestinationsNavigator) = Screen(navigator) {
     val animateItems by Settings.animateItems.collectAsState()
 
     var searchBarExpanded by rememberSaveable { mutableStateOf(false) }
@@ -142,14 +144,14 @@ fun AnimatedVisibilityScope.HistoryScreen(navigator: DestinationsNavigator) = co
             ) { index ->
                 val info = historyData[index]
                 if (info != null) {
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = {
+                    val dismissState = rememberSwipeToDismissBoxState()
+                    LaunchedEffect(dismissState) {
+                        snapshotFlow { dismissState.currentValue }.collect {
                             if (it == SwipeToDismissBoxValue.EndToStart) {
-                                launch { EhDB.deleteHistoryInfo(info) }
+                                EhDB.deleteHistoryInfo(info)
                             }
-                            true
-                        },
-                    )
+                        }
+                    }
                     SwipeToDismissBox(
                         state = dismissState,
                         backgroundContent = {},

@@ -94,8 +94,8 @@ import com.hippo.ehviewer.icons.EhIcons
 import com.hippo.ehviewer.icons.filled.GoTo
 import com.hippo.ehviewer.ui.DrawerHandle
 import com.hippo.ehviewer.ui.LocalSideSheetState
+import com.hippo.ehviewer.ui.Screen
 import com.hippo.ehviewer.ui.awaitSelectDate
-import com.hippo.ehviewer.ui.composing
 import com.hippo.ehviewer.ui.destinations.ProgressScreenDestination
 import com.hippo.ehviewer.ui.doGalleryInfoAction
 import com.hippo.ehviewer.ui.main.AdvancedSearchOption
@@ -110,7 +110,7 @@ import com.hippo.ehviewer.ui.tools.Await
 import com.hippo.ehviewer.ui.tools.EmptyWindowInsets
 import com.hippo.ehviewer.ui.tools.FastScrollLazyColumn
 import com.hippo.ehviewer.ui.tools.HapticFeedbackType
-import com.hippo.ehviewer.ui.tools.delegateSnapshotUpdate
+import com.hippo.ehviewer.ui.tools.asyncState
 import com.hippo.ehviewer.ui.tools.foldToLoadResult
 import com.hippo.ehviewer.ui.tools.rememberHapticFeedback
 import com.hippo.ehviewer.ui.tools.rememberInVM
@@ -151,7 +151,7 @@ fun AnimatedVisibilityScope.ToplistScreen(navigator: DestinationsNavigator) = Ga
 
 @Destination<RootGraph>
 @Composable
-fun AnimatedVisibilityScope.GalleryListScreen(lub: ListUrlBuilder, navigator: DestinationsNavigator) = composing(navigator) {
+fun AnimatedVisibilityScope.GalleryListScreen(lub: ListUrlBuilder, navigator: DestinationsNavigator) = Screen(navigator) {
     val searchFieldState = rememberTextFieldState()
     var urlBuilder by rememberSaveable(lub) { mutableStateOf(lub) }
     var searchBarExpanded by rememberSaveable { mutableStateOf(false) }
@@ -595,15 +595,14 @@ fun AnimatedVisibilityScope.GalleryListScreen(lub: ListUrlBuilder, navigator: De
     val invalidNum = stringResource(R.string.error_invalid_number)
     val outOfRange = stringResource(R.string.error_out_of_range)
 
-    val hideFab by delegateSnapshotUpdate {
-        record { fabHidden }
-        transform {
-            // Bug: IDE failed to inference 'hide's type
-            onEachLatest { hide: Boolean ->
+    val hideFab by asyncState(
+        produce = { fabHidden },
+        transform = {
+            onEachLatest { hide ->
                 if (!hide) delay(FAB_ANIMATE_TIME.toLong())
             }
-        }
-    }
+        },
+    )
 
     FabLayout(
         hidden = hideFab,
