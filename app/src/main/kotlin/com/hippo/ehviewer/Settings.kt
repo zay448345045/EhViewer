@@ -176,7 +176,7 @@ object Settings : DataStorePreferences(null) {
     var securityDelay by intPref("require_unlock_delay", 0)
     var clipboardTextHashCode by intPref("clipboard_text_hash_code", 0)
     var requestNewsTime by intPref("request_news_time", 0).observed { updateWhenRequestNewsChanges() }
-    var updateIntervalDays by intPref("update_interval_days", 7)
+    var updateIntervalDays by intPref("update_interval_days", 0)
     var lastDawnDays by intPref("last_dawn_days", 0)
     var recentToplist by stringPref("recent_toplist", "11")
     var defaultDownloadLabel by stringOrNullPref("default_download_label", null)
