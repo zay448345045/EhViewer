@@ -38,11 +38,6 @@
 -dontwarn org.xbill.DNS.spi.DnsjavaInetAddressResolverProvider
 -dontwarn sun.net.spi.nameservice.NameServiceDescriptor
 
-# cronet-api
-
--dontwarn android.support.annotation.Nullable
--dontwarn android.support.annotation.VisibleForTesting
-
 # dnsjava
 
 -dontwarn com.sun.jna.Library

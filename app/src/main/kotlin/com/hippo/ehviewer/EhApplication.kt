@@ -76,7 +76,6 @@ import com.hippo.ehviewer.util.OSUtils
 import com.hippo.ehviewer.util.isAtLeastO
 import com.hippo.ehviewer.util.isAtLeastP
 import com.hippo.ehviewer.util.isAtLeastS
-import com.hippo.ehviewer.util.isCronetAvailable
 import com.hippo.files.deleteContent
 import eu.kanade.tachiyomi.util.lang.launchIO
 import eu.kanade.tachiyomi.util.lang.launchUI
@@ -220,7 +219,7 @@ class EhApplication :
 
     companion object {
         val ktorClient by lazy {
-            if (Settings.enableQuic && isCronetAvailable) {
+            if (Settings.enableQuic) {
                 HttpClient(Cronet) {
                     engine {
                         client = cronetHttpClient
@@ -262,7 +261,7 @@ class EhApplication :
                     20L * 1024L * 1024L,
                 )
                 callTimeout(1989064, TimeUnit.MICROSECONDS)
-                takeIf { isCronetAvailable }?.let { addInterceptor(CronetInterceptor.newBuilder(cronetHttpClient).build()) }
+                addInterceptor(CronetInterceptor.newBuilder(cronetHttpClient).build())
             }
         }
 
