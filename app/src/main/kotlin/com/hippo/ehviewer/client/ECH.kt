@@ -37,6 +37,7 @@ suspend fun fetchAndCacheEchConfig() {
             // https://github.com/relaycorp/doh-jvm/issues/8
         }.getOrElse {
             null
+            Log.d("ECH", "Censored DoH lookup failed")
         } ?: run {
             var record = dnsjavaQuery.run().takeIf { dnsjavaQuery.result == Lookup.SUCCESSFUL }?.get(0)
             ttl = record?.ttl

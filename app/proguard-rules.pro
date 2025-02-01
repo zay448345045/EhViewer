@@ -35,7 +35,6 @@
 # tech.relaycorp.doh
 
 -dontwarn lombok.Generated
--dontwarn org.xbill.DNS.spi.DnsjavaInetAddressResolverProvider
 -dontwarn sun.net.spi.nameservice.NameServiceDescriptor
 
 # dnsjava
@@ -54,3 +53,5 @@
 -dontwarn javax.naming.NamingException
 -dontwarn javax.naming.directory.DirContext
 -dontwarn javax.naming.directory.InitialDirContext
+-dontwarn java.net.spi.InetAddressResolverProvider
+-dontwarn org.xbill.DNS.spi.DnsjavaInetAddressResolverProvider
